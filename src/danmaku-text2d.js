@@ -9,7 +9,7 @@ danmaku-frame text2d mod
 danmaku position is based on time
 */
 
-(function(){
+function init(DanmakuFrame,DanmakuFrameModule){
 	class Text2D extends DanmakuFrameModule{
 		constructor(frame){
 			super(frame);
@@ -250,4 +250,6 @@ danmaku position is based on time
 	}
 
 	DanmakuFrame.addModule('text2d',Text2D);
-})();
+};
+
+export {init};
