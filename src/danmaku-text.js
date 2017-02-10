@@ -71,7 +71,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			const i=this.list.indexOf(d);
 			if(i<0)return false;
 			this.list.splice(i,1);
-			ig(i<this.indexMark)this.indexMark--;
+			if(i<this.indexMark)this.indexMark--;
 			return true;
 		}
 		resetTunnel(){
