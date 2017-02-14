@@ -90,7 +90,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					cWidth=this.frame.COL.canvas.width;
 			let t,d;
 			for(;this.list[this.indexMark].time<=cTime;this.indexMark++){//add new danmaku
-				if(this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
+				if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
+				if(document.hidden)continue;
 				d=this.list[this.indexMark];
 				t=this.COL_GraphCache.length?
 					this.COL_GraphCache.shift():
