@@ -5,9 +5,9 @@ LGPL license
 danmaku-frame text2d mod
 */
 'use strict';
-/*
-danmaku position is based on time
-*/
+
+import '../lib/COL/CanvasObjLibrary.js';
+
 
 function init(DanmakuFrame,DanmakuFrameModule){
 	class Text2D extends DanmakuFrameModule{
@@ -41,11 +41,18 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.frame.COL.root.appendChild(this.layer);
 			this.cacheCleanTime=0;
 			this.danmakuMoveTime=0;
+			//this._clearRange=[0,0];
 			this.options={
 				allowLines:false,//allow multi-line danmaku
 				screenLimit:0,//the most number of danmaku on the screen
 				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
 			}
+
+			this.canvas=document.createElement('canvas');//the canvas
+			this.canvas.style='z-index:999;position:absolute;width:100%;height:100%;top:0;left:0;';
+			this.context2d=this.canvas.getContext('2d');//the canvas context
+			this.COL=new CanvasObjLibrary(this.canvas);//the library
+			frame.container.appendChild(this.canvas);
 		}
 		start(){
 			this.paused=false;
@@ -53,6 +60,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		pause(){
 			this.paused=true;
+		}
+		stop(){
+			this.COL.clear();//clear the canvas
 		}
 		load(d){
 			if(!d || d._!=='text'){return false;}
@@ -83,11 +93,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			};
 		}
 		draw(){
-			if(!this.enabled || this.paused)return;
+			if(!this.enabled)return;
 			//find danmaku from indexMark to current time
 			const cTime=this.frame.time,
 					cHeight=this.frame.COL.canvas.height,
-					cWidth=this.frame.COL.canvas.width;
+					cWidth=this.frame.COL.canvas.width,
+					ctx=this.COL.context;
 			let t,d;
 			for(;this.list[this.indexMark].time<=cTime;this.indexMark++){//add new danmaku
 				if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
@@ -98,6 +109,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					new this.frame.COL.class.TextGraph();
 				t.onoverCheck=false;
 				t.danmaku=d;
+				t.drawn=false;
 				t.text=this.allowLines?d.text:d.text.replace(/\n/g,' ');
 				t.time=cTime;
 				t.font=Object.create(this.defaultStyle);
@@ -125,9 +137,15 @@ function init(DanmakuFrame,DanmakuFrameModule){
 								size;
 				this.layer.appendChild(t);
 			}
+
+			//const cRange=this._clearRange;
 			//calc all danmaku's position
 			for(t of this.layer.childNodes){
 				this.danmakuMoveTime=cTime;
+				if(t.drawn){
+					ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
+				}else{t.drawn=true;}
+
 				switch(t.danmaku.tunnel){
 					case 0:case 1:{
 						const direc=t.danmaku.tunnel;
@@ -149,6 +167,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					}
 				}
 			}
+			this.COL.draw();
 			//clean cache
 			if((Date.now()-this.cacheCleanTime)>5000){
 				this.cacheCleanTime=Date.now();
@@ -190,6 +209,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			t.removeTime=Date.now();
 			this.COL_GraphCache.push(t);
 		}
+		resize(){
+			this.draw();
+		}
 		clear(){//clear danmaku on the screen
 			for(t of this.layer.childNodes){
 				if(t.danmaku)this.removeText(t);
@@ -222,9 +244,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		enable(){//enable the plugin
 			this.layer.style.hidden=false;
+			this.canvas.hidden=false;
 		}
 		disable(){//disable the plugin
 			this.layer.style.hidden=true;
+			this.canvas.hidden=false;
 			this.clear();
 		}
 	}
@@ -253,4 +277,5 @@ function init(DanmakuFrame,DanmakuFrameModule){
 	DanmakuFrame.addModule('text2d',Text2D);
 };
 
-export {init};
+
+export default init;
