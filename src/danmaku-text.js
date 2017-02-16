@@ -36,9 +36,15 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				speed:5,
 				opacity:1,
 			};
+
+			this.canvas=document.createElement('canvas');//the canvas
+			this.canvas.style='z-index:999;position:absolute;width:100%;height:100%;top:0;left:0;';
+			this.context2d=this.canvas.getContext('2d');//the canvas context
+			this.COL=new CanvasObjLibrary(this.canvas);//the library
+			frame.container.appendChild(this.canvas);
 			this.COL_GraphCache=[];//COL text graph cache
-			this.layer=new this.frame.COL.class.FunctionGraph();//text layer
-			this.frame.COL.root.appendChild(this.layer);
+			this.layer=new this.COL.class.FunctionGraph();//text layer
+			this.COL.root.appendChild(this.layer);
 			this.cacheCleanTime=0;
 			this.danmakuMoveTime=0;
 			//this._clearRange=[0,0];
@@ -47,12 +53,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				screenLimit:0,//the most number of danmaku on the screen
 				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
 			}
-
-			this.canvas=document.createElement('canvas');//the canvas
-			this.canvas.style='z-index:999;position:absolute;width:100%;height:100%;top:0;left:0;';
-			this.context2d=this.canvas.getContext('2d');//the canvas context
-			this.COL=new CanvasObjLibrary(this.canvas);//the library
-			frame.container.appendChild(this.canvas);
 		}
 		start(){
 			this.paused=false;
@@ -96,8 +96,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(!this.enabled)return;
 			//find danmaku from indexMark to current time
 			const cTime=this.frame.time,
-					cHeight=this.frame.COL.canvas.height,
-					cWidth=this.frame.COL.canvas.width,
+					cHeight=this.COL.canvas.height,
+					cWidth=this.COL.canvas.width,
 					ctx=this.COL.context;
 			let t,d;
 			for(;this.list[this.indexMark].time<=cTime;this.indexMark++){//add new danmaku
@@ -106,7 +106,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				d=this.list[this.indexMark];
 				t=this.COL_GraphCache.length?
 					this.COL_GraphCache.shift():
-					new this.frame.COL.class.TextGraph();
+					new this.COL.class.TextGraph();
 				t.onoverCheck=false;
 				t.danmaku=d;
 				t.drawn=false;
@@ -182,7 +182,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		getTunnel(tid,size){//get the tunnel index that can contain the danmaku of the sizes
 			let tunnel=this.tunnels[tunnels[tid]],tnum=-1,ti=0,
-				cHeight=this.frame.COL.canvas.height;
+				cHeight=this.COL.canvas.height;
 			if(size>cHeight)return -1;
 
 			while(tnum<0){
