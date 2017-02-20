@@ -38,9 +38,10 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			};
 
 			this.canvas=document.createElement('canvas');//the canvas
-			this.canvas.style='z-index:999;position:absolute;width:100%;height:100%;top:0;left:0;';
+			this.canvas.style='position:absolute;width:100%;height:100%;top:0;left:0;';
 			this.context2d=this.canvas.getContext('2d');//the canvas context
 			this.COL=new CanvasObjLibrary(this.canvas);//the library
+			this.COL.autoClear=false;
 			frame.container.appendChild(this.canvas);
 			this.COL_GraphCache=[];//COL text graph cache
 			this.layer=new this.COL.class.FunctionGraph();//text layer
@@ -100,6 +101,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					cWidth=this.COL.canvas.width,
 					ctx=this.COL.context;
 			let t,d;
+			if(this.list.length)
 			for(;this.list[this.indexMark].time<=cTime;this.indexMark++){//add new danmaku
 				if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
 				if(document.hidden)continue;
