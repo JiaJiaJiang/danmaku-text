@@ -38,7 +38,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			};
 
 			this.canvas=document.createElement('canvas');//the canvas
-			this.canvas.style='position:absolute;width:100%;height:100%;top:0;left:0;';
+			Object.assign(this.canvas.style,{position:'absolute',width:'100%',height:'100%',top:0,left:0});
 			this.context2d=this.canvas.getContext('2d');//the canvas context
 			this.COL=new CanvasObjLibrary(this.canvas);//the library
 			this.COL.autoClear=false;
