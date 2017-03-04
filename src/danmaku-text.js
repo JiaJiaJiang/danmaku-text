@@ -8,6 +8,22 @@ danmaku-frame text2d mod
 
 import CanvasObjLibrary from '../lib/COL/CanvasObjLibrary.js';
 
+/*
+danmaku obj struct
+{
+	_:'text',
+	time:(number)msec time,
+	text:(string),
+	style:(object)to be combined whit default style,
+	mode:(number)
+}
+
+danmaku mode
+	0:right
+	1:left
+	2:bottom
+	3:top
+*/
 
 function init(DanmakuFrame,DanmakuFrameModule){
 	class Text2D extends DanmakuFrameModule{
@@ -102,7 +118,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					ctx=this.COL.context;
 			let t,d;
 			if(this.list.length)
-			for(;this.list[this.indexMark].time<=cTime;this.indexMark++){//add new danmaku
+			for(;(d=this.list[this.indexMark])&&(d.time<=cTime);this.indexMark++){//add new danmaku
 				if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
 				if(document.hidden)continue;
 				d=this.list[this.indexMark];
@@ -120,12 +136,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 
 				t.prepare();
 				//find tunnel number
-				const size=t.style.height,tnum=this.getTunnel(d.tunnel,size);
+				const size=t.style.height,tnum=this.getTunnel(d.mode,size);
 				t.tunnelNumber=tnum;
 				//calc margin
 				let margin=(tnum<0?0:tnum)%cHeight;
 				t.style.setPositionPoint(t.style.width/2,0);
-				switch(d.tunnel){
+				switch(d.mode){
 					case 0:case 1:case 3:{
 						t.style.top=margin;break;
 					}
@@ -148,15 +164,15 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 				}else{t.drawn=true;}
 
-				switch(t.danmaku.tunnel){
+				switch(t.danmaku.mode){
 					case 0:case 1:{
-						const direc=t.danmaku.tunnel;
+						const direc=t.danmaku.mode;
 						t.style.x=(direc?(cWidth+t.style.width/2):(-t.style.width/2))
 									+(direc?-1:1)*this.frame.rate*520*(cTime-t.time)/t.font.speed/1000;
 						if((direc||t.style.x<-t.style.width) || (direc&&t.style.x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
 						}else if(t.tunnelNumber>=0 && ((direc||(t.style.x+t.style.width/2)+30<cWidth) || (direc&&(t.style.x-t.style.width/2)>30))){
-							delete this.tunnels[tunnels[t.danmaku.tunnel]][t.tunnelNumber];
+							delete this.tunnels[tunnels[t.danmaku.mode]][t.tunnelNumber];
 							t.tunnelNumber=-1;
 						}
 						break;
@@ -207,11 +223,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		removeText(t){//remove the danmaku from screen
 			this.layer.removeChild(t);
 			t.danmaku=null;
-			(t.tunnelNumber>=0)&&(delete this.tunnels[tunnels[t.danmaku.tunnel]][t.tunnelNumber]);
+			(t.tunnelNumber>=0)&&(delete this.tunnels[tunnels[t.danmaku.mode]][t.tunnelNumber]);
 			t.removeTime=Date.now();
 			this.COL_GraphCache.push(t);
 		}
 		resize(){
+			this.COL.adjustCanvas();
 			this.draw();
 		}
 		clear(){//clear danmaku on the screen
@@ -257,22 +274,16 @@ function init(DanmakuFrame,DanmakuFrameModule){
 
 	const tunnels=['right','left','bottom','top'];
 
-	function dichotomy(arr,t,start,end,position){
+	function dichotomy(arr,t,start,end,position=false){
 		if(arr.length===0)return -1;
-		let m;
-		while(start <= end){
+		let m,base=position?-1:1;
+		while(start < end){
 			m=(start+end)>>1;
-			if(t<=arr[m].time)start=m;
-			else end=m-1;
+			if(t<arr[m].time)start=m+1;
+			else end=m;
 		}
-		if(position===true){//top
-			while(arr[start-1] && (arr[start-1].time===arr[start].time))
-				start--;
-		}else if(position===false){//end
-			while(arr[start+1] && (arr[start+1].time===arr[start].time))
-				start++;
-		}
-		
+		while(arr[start+base] && (arr[start+base].time===arr[start].time))
+			start+=+base;
 		return start;
 	}
 
