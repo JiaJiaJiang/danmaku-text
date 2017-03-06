@@ -42,7 +42,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				fontSize: 30,
 				fontFamily: "Arial",
 				strokeWidth: 1,//outline width
-				strokeColor: "#000",
+				strokeColor: "#888",
 				shadowBlur: 5,
 				shadowColor: "#000",
 				shadowOffsetX:0,
@@ -63,13 +63,28 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.COL.root.appendChild(this.layer);
 			this.cacheCleanTime=0;
 			this.danmakuMoveTime=0;
-			//this._clearRange=[0,0];
+			this.danmakuCheckSwitch=true;
 			this.options={
 				allowLines:false,//allow multi-line danmaku
 				screenLimit:0,//the most number of danmaku on the screen
 				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
 				speed:5,
 			}
+			document.addEventListener('visibilityChange',e=>{
+				if(document.hidden){
+					this.pause();
+				}else{
+					this.reCheckIndexMark();
+					this.start();
+				}
+			});
+		}
+		media(media){
+			addEvents(media,{
+				seeked:()=>{
+					this.clear();
+				},
+			});
 		}
 		start(){
 			this.paused=false;
@@ -81,13 +96,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		load(d){
 			if(!d || d._!=='text'){return false;}
 			let t=d.time,ind,arr=this.list;
-			if(arr.length===0 || (t<arr[0].time))ind=0;
-			else if(t>=arr[arr.length-1].time)ind=arr.length;
-			else{ind=dichotomy(arr,d.time,0,arr.length-1,false)}
+			ind=dichotomy(arr,d.time,0,arr.length-1,false)
 			arr.splice(ind,0,d);
 			if(ind<this.indexMark)this.indexMark++;
 			//round d.size to prevent Iifinity loop in tunnel
 			d.size=(d.size+0.5)|0;
+			if(!this.options.allowLines)d.text=d.text.replace(/\n/g,' ');
 			if(d.size===NaN || d.size===Infinity)d.size=this.defaultStyle.fontSize;
 			return true;
 		}
@@ -113,41 +127,43 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					cWidth=this.COL.canvas.width,
 					ctx=this.COL.context;
 			let t,d;
-			if(!force&&this.list.length)
-			for(;(d=this.list[this.indexMark])&&(d.time<=cTime);this.indexMark++){//add new danmaku
-				if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
-				if(document.hidden)continue;
-				d=this.list[this.indexMark];
-				t=this.COL_GraphCache.length?
-					this.COL_GraphCache.shift():
-					new this.COL.class.TextGraph();
-				t.onoverCheck=false;
-				t.danmaku=d;
-				t.drawn=false;
-				t.text=this.allowLines?d.text:d.text.replace(/\n/g,' ');
-				t.time=cTime;
-				t.font=Object.create(this.defaultStyle);
-				Object.assign(t.font,d.style);
-				t.style.opacity=t.font.opacity;
-
-				t.prepare();
-				//find tunnel number
-				const size=t.style.height,tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
-				//calc margin
-				let margin=(tnum<0?0:tnum)%cHeight;
-				switch(d.mode){
-					case 0:case 1:case 3:{
-						t.style.y=margin;break;
+			if(!force&&this.list.length&&this.danmakuCheckSwitch&&!document.hidden){
+				for(;(d=this.list[this.indexMark])&&(d.time<=cTime);this.indexMark++){//add new danmaku
+					if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)break;//break if the number of danmaku on screen has up to limit
+					if(document.hidden)continue;
+					d=this.list[this.indexMark];
+					t=this.COL_GraphCache.length?
+						this.COL_GraphCache.shift():
+						new this.COL.class.TextGraph();
+					t.onoverCheck=false;
+					t.danmaku=d;
+					t.drawn=false;
+					t.text=d.text;
+					t.time=d.time;
+					t.font=Object.create(this.defaultStyle);
+					Object.assign(t.font,d.style);
+					t.style.opacity=t.font.opacity;
+	
+					t.prepare();
+					//find tunnel number
+					const size=t.style.height,tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
+					//calc margin
+					let margin=(tnum<0?0:tnum)%cHeight;
+					switch(d.mode){
+						case 0:case 1:case 3:{
+							t.style.y=margin;break;
+						}
+						case 2:{
+							t.style.y=cHeight-margin-t.style.height-1;
+						}
 					}
-					case 2:{
-						t.style.y=cHeight-margin-t.style.height-1;
-					}
+					if(d.mode>1)t.style.x=(cWidth-t.style.width)/2;
+					this.layer.appendChild(t);
 				}
-				if(d.mode>1)t.style.x=(cWidth-t.style.width)/2;
-				this.layer.appendChild(t);
+				this.danmakuCheckSwitch=false;
+			}else{
+				this.danmakuCheckSwitch=true;
 			}
-
-			//const cRange=this._clearRange;
 			//calc all danmaku's position
 			this.danmakuMoveTime=cTime;
 			this._clearCanvas();
@@ -156,7 +172,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					case 0:case 1:{
 						const Mright=!t.danmaku.mode;
 						t.style.x=(Mright?(cWidth+t.style.width):(-t.style.width))
-									+(Mright?-1:1)*this.frame.rate*520*(cTime-t.time)/this.options.speed/1000;
+									+(Mright?-1:1)*this.frame.rate*(cWidth+t.style.width)*(cTime-t.time)*this.options.speed/60000;
 						if((Mright&&t.style.x<-t.style.width) || (!Mright&&t.style.x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
 						}else if(t.tunnelNumber>=0 && ((Mright&&(t.style.x+t.style.width)+30<cWidth) || (!Mright&&t.style.x>30))){
@@ -185,6 +201,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 		}
 		_evaluateIfFullClearMode(){
+			if(this.COL.debug.switch)return true;
+			if(this.canvas.width*this.canvas.height/this.layer.childNodes.length>50000)return true;
 			return false;
 		}
 		_clearCanvas(forceFull){
@@ -217,8 +235,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.tunnel.reset();
 			this._clearCanvas(true);
 		}
-		time(t){//reset time,you should invoke it when the media has seeked to another time
+		reCheckIndexMark(t=this.frame.time){
 			this.indexMark=dichotomy(this.list,t,0,this.list.length-1,true);
+		}
+		time(t=this.frame.time){//reset time,you should invoke it when the media has seeked to another time
+			this.reCheckIndexMark();
 			if(this.options.clearWhenTimeReset){this.clear();}
 			else{this.resetTimeOfDanmakuOnScreen();}
 		}
@@ -287,7 +308,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				}
 			}
 			tobj.tunnelNumber=tnum;
-			tobj.tunnelHeight=((tobj.style.y+size)>cHeight)?cHeight-tobj.style.y-1:size;
+			tobj.tunnelHeight=(((tobj.style.y+size)>cHeight)?cHeight-tobj.style.y-1:size)||1;
 			this.addMark(tobj);
 			return tnum;
 		}
@@ -311,17 +332,19 @@ function init(DanmakuFrame,DanmakuFrameModule){
 
 	function dichotomy(arr,t,start,end,position=false){
 		if(arr.length===0)return 0;
-		let m,e=end;
-		while(start < end){//dichotomy
+		let m=start,s=start,e=end;
+		while(start <= end){//dichotomy
 			m=(start+end)>>1;
-			if(t>=arr[m].time)start=m+1;
-			else{end=m;}
+			if(t<=arr[m].time)end=m-1;
+			else{start=m+1;}
 		}
-		if(position){
-			while(start<e && (arr[start+=1].time===arr[start].time)){}
-		}else{
-			while(start>0 && (arr[start-1].time===arr[start].time)){
-				start-=1;
+		if(position){//find to top
+			while(start>0 && (arr[start-1].time===t)){
+				start--;
+			}
+		}else{//find to end
+			while(start<=e &&  (arr[start].time===t)){
+				start++;
 			}
 		}
 		return start;
@@ -330,5 +353,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 	DanmakuFrame.addModule('text2d',Text2D);
 };
 
+function addEvents(target,events={}){
+	for(let e in events)e.split(/\,/g).forEach(e2=>target.addEventListener(e2,events[e]));
+}
 
 export default init;
