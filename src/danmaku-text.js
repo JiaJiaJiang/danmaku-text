@@ -61,7 +61,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.COL.autoClear=false;
 			frame.container.appendChild(this.canvas);
 			this.COL_GraphCache=[];//COL text graph cache
+			this.COL_DanmakuText=[];
 			this.layer=new this.COL.class.FunctionGraph();//text layer
+			this.layer.drawer=ct=>{this._layerDrawFunc(ct);}//set draw func
 			this.COL.root.appendChild(this.layer);
 			this.cacheCleanTime=0;
 			this.danmakuMoveTime=0;
@@ -127,6 +129,39 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(i<this.indexMark)this.indexMark--;
 			return true;
 		}
+		_layerDrawFunc(ctx){
+			const 	cTime=this.frame.time,
+					cHeight=this.COL.canvas.height,
+					cWidth=this.COL.canvas.width,
+					rate=this.frame.rate,
+					speed=this.options.speed;
+					
+			let x,Mright;
+			for(let t of this.COL_DanmakuText){
+				switch(t.danmaku.mode){
+					case 0:case 1:{
+						Mright=!t.danmaku.mode;
+						t.style.x=x=(Mright?(cWidth+t.style.width):(-t.style.width))
+							+(Mright?-1:1)*rate*(t.style.width+cWidth)*(cTime-t.time)*speed/60000;
+						if((Mright&&x<-t.style.width) || (!Mright&&x>cWidth+t.style.width)){//go out the canvas
+							this.removeText(t);
+							continue;
+						}else if(t.tunnelNumber>=0 && ((Mright&&(x+t.style.width)+30<cWidth) || (!Mright&&x>30))){
+							this.tunnel.removeMark(t);
+						}
+						ctx.drawImage(t._bitmap?t._bitmap:t._cache, x-t.estimatePadding, t.style.y-t.estimatePadding);
+						break;
+					}
+					case 2:case 3:{
+						if((cTime-t.time)>speed*1000/rate){
+							this.removeText(t);
+							continue;
+						}
+						ctx.drawImage(t._bitmap?t._bitmap:t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
+					}
+				}
+			}
+		}
 		draw(force){
 			if(!this.enabled)return;
 			//find danmaku from indexMark to current time
@@ -152,7 +187,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					t.font=Object.create(this.defaultStyle);
 					Object.assign(t.font,d.style);
 					t.style.opacity=t.font.opacity;
-	
+					if(d.mode>1)t.font.textAlign='center';
 					t.prepare(true);
 					//find tunnel number
 					const size=t.style.height,tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
@@ -168,9 +203,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					}
 					if(d.mode>1){
 						t.style.x=(cWidth-t.style.width)/2;
-						t.font.textAlign='center';
 					}
-					this.layer.appendChild(t);
+					this.COL_DanmakuText.push(t);
+					//this.layer.appendChild(t);
 				}
 				this.danmakuCheckSwitch=false;
 			}else{
@@ -179,26 +214,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			//calc all danmaku's position
 			this.danmakuMoveTime=cTime;
 			this._clearCanvas();
-			for(t of this.layer.childNodes){
-				switch(t.danmaku.mode){
-					case 0:case 1:{
-						const Mright=!t.danmaku.mode;
-						t.style.x=(Mright?(cWidth+t.style.width):(-t.style.width))
-									+(Mright?-1:1)*this.frame.rate*(t.style.width+cWidth)*(cTime-t.time)*this.options.speed/60000;
-						if((Mright&&t.style.x<-t.style.width) || (!Mright&&t.style.x>cWidth+t.style.width)){//go out the canvas
-							this.removeText(t);
-						}else if(t.tunnelNumber>=0 && ((Mright&&(t.style.x+t.style.width)+30<cWidth) || (!Mright&&t.style.x>30))){
-							this.tunnel.removeMark(t);
-						}
-						break;
-					}
-					case 2:case 3:{
-						if((cTime-t.time)>this.options.speed*1000/this.frame.rate){
-							this.removeText(t);
-						}
-					}
-				}
-			}
+			
 			this.COL.draw();
 			//clean cache
 			if((Date.now()-this.cacheCleanTime)>5000){
@@ -214,7 +230,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_evaluateIfFullClearMode(){
 			if(this.COL.debug.switch)return true;
-			if(this.canvas.width*this.canvas.height/this.layer.childNodes.length<50000)return true;
+			if(this.canvas.width*this.canvas.height/this.COL_DanmakuText.length<50000)return true;
 			return false;
 		}
 		_clearCanvas(forceFull){
@@ -223,14 +239,17 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				return;
 			}
 			let ctx=this.COL.context
-			for(let t of this.layer.childNodes){
+			for(let t of this.COL_DanmakuText){
 				if(t.drawn){
 					ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 				}else{t.drawn=true;}
 			}
 		}
 		removeText(t){//remove the danmaku from screen
-			this.layer.removeChild(t);
+			let ind=this.COL_DanmakuText.indexOf(t);
+			t._bitmap=null;
+			if(ind>=0)this.COL_DanmakuText.splice(ind,1);
+			//this.layer.removeChild(t);
 			this.tunnel.removeMark(t);
 			t.danmaku=null;
 			t.removeTime=Date.now();
@@ -266,7 +285,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		danmakuAt(x,y){//return a list of danmaku which is over this position
 			const list=[];
 			if(!this.enabled)return list;
-			for(let t of this.layer.childNodes){
+			for(let t of this.COL_DanmakuText){
 				if(!t.danmaku)continue;
 				if(t.x<=x && t.x+t.style.width>=x && t.y<=y && t.y+t.style.height>=y)
 					list.push(t.danmaku);
