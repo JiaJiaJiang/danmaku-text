@@ -6,7 +6,7 @@ danmaku-frame text2d mod
 */
 'use strict';
 
-import CanvasObjLibrary from '../lib/COL/CanvasObjLibrary.js';
+import CanvasObjLibrary from '../lib/CanvasObjLibrary/src/CanvasObjLibrary.js';
 
 /*
 danmaku obj struct
