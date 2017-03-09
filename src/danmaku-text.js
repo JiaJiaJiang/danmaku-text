@@ -173,7 +173,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			let t,d;
 			if(!force&&this.list.length&&this.danmakuCheckSwitch&&!document.hidden){
 				for(;(d=this.list[this.indexMark])&&(d.time<=cTime);this.indexMark++){//add new danmaku
-					if(this.options.screenLimit>0 && this.layer.childNodes.length>=this.options.screenLimit)continue;//break if the number of danmaku on screen has up to limit
+					if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit)continue;//continue if the number of danmaku on screen has up to limit
 					if(document.hidden)continue;
 					d=this.list[this.indexMark];
 					t=this.COL_GraphCache.length?
@@ -228,6 +228,20 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				}
 			}
 		}
+		removeText(t){//remove the danmaku from screen
+			let ind=this.COL_DanmakuText.indexOf(t);
+			t._bitmap=null;
+			if(ind>=0)this.COL_DanmakuText.splice(ind,1);
+			//this.layer.removeChild(t);
+			this.tunnel.removeMark(t);
+			t.danmaku=null;
+			t.removeTime=Date.now();
+			this.COL_GraphCache.push(t);
+		}
+		resize(){
+			this.COL.adjustCanvas();
+			this.draw(true);
+		}
 		_evaluateIfFullClearMode(){
 			if(this.COL.debug.switch)return true;
 			if(this.canvas.width*this.canvas.height/this.COL_DanmakuText.length<50000)return true;
@@ -245,22 +259,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				}else{t.drawn=true;}
 			}
 		}
-		removeText(t){//remove the danmaku from screen
-			let ind=this.COL_DanmakuText.indexOf(t);
-			t._bitmap=null;
-			if(ind>=0)this.COL_DanmakuText.splice(ind,1);
-			//this.layer.removeChild(t);
-			this.tunnel.removeMark(t);
-			t.danmaku=null;
-			t.removeTime=Date.now();
-			this.COL_GraphCache.push(t);
-		}
-		resize(){
-			this.COL.adjustCanvas();
-			this.draw(true);
-		}
 		clear(){//clear danmaku on the screen
-			for(let t of this.layer.childNodes){
+			for(let t of this.COL_DanmakuText){
 				if(t.danmaku)this.removeText(t);
 			}
 			this.tunnel.reset();
@@ -277,7 +277,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		resetTimeOfDanmakuOnScreen(cTime=this.frame.time){
 			//cause the position of the danmaku is based on time
 			//and if you don't want these danmaku on the screen to disappear,their time should be reset
-			for(let t of this.layer.childNodes){
+			for(let t of this.COL_DanmakuText){
 				if(!t.danmaku)continue;
 				t.time=cTime-(this.danmakuMoveTime-t.time);
 			}
