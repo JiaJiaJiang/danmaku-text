@@ -92,6 +92,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				seeking:()=>{
 					this.pause();
 				},
+				stalled:()=>{
+					this.pause();
+				},
 			});
 		}
 		start(){
@@ -136,12 +139,17 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					rate=this.frame.rate,
 					speed=this.options.speed;
 					
-			let x,Mright;
-			for(let t of this.COL_DanmakuText){
+			let x,Mright,i,t,DT=this.COL_DanmakuText;
+			for(i=0;i<DT.length;i++){
+				t=this.COL_DanmakuText[i];
+				if(i+1<DT.length && t.time>DT[i+1].time){
+					this.removeText(t);
+					continue;
+				}
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						Mright=!t.danmaku.mode;
-						t.style.x=x=(Mright?(cWidth+t.style.width):(-t.style.width))
+						t.style.x=x=(Mright?cWidth:(-t.style.width))
 							+(Mright?-1:1)*rate*(t.style.width+cWidth)*(cTime-t.time)*speed/60000;
 						if((Mright&&x<-t.style.width) || (!Mright&&x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
@@ -161,6 +169,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					}
 				}
 			}
+				
 		}
 		draw(force){
 			if(!this.enabled)return;
@@ -169,16 +178,14 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			const 	cTime=this.frame.time,
 					cHeight=this.COL.canvas.height,
 					cWidth=this.COL.canvas.width,
-					ctx=this.COL.context;
+					ctx=this.COL.context,
+					now=Date.now();
 			let t,d;
 			if(!force&&this.list.length&&this.danmakuCheckSwitch&&!document.hidden){
 				for(;(d=this.list[this.indexMark])&&(d.time<=cTime);this.indexMark++){//add new danmaku
-					if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit)continue;//continue if the number of danmaku on screen has up to limit
-					if(document.hidden)continue;
+					if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit ||document.hidden)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
 					d=this.list[this.indexMark];
-					t=this.COL_GraphCache.length?
-						this.COL_GraphCache.shift():
-						new this.COL.class.TextGraph();
+					t=this.COL_GraphCache.length?this.COL_GraphCache.shift():new this.COL.class.TextGraph();
 					t.onoverCheck=false;
 					t.danmaku=d;
 					t.drawn=false;
@@ -205,7 +212,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 						t.style.x=(cWidth-t.style.width)/2;
 					}
 					this.COL_DanmakuText.push(t);
-					//this.layer.appendChild(t);
 				}
 				this.danmakuCheckSwitch=false;
 			}else{
@@ -217,11 +223,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			
 			this.COL.draw();
 			//clean cache
-			if((Date.now()-this.cacheCleanTime)>5000){
-				this.cacheCleanTime=Date.now();
+			if((now-this.cacheCleanTime)>5000){
+				this.cacheCleanTime=now;
 				if(this.COL_GraphCache.length>20){//save 20 cached danmaku
 					for(let ti = 0;ti<this.COL_GraphCache.length;ti++){
-						if((Date.now()-this.COL_GraphCache[ti].removeTime) > 10000){//delete cache which has live over 10s
+						if((now-this.COL_GraphCache[ti].removeTime) > 10000){//delete cache which has live over 10s
 							this.COL_GraphCache.splice(ti,1);
 						}else{break;}
 					}
@@ -232,7 +238,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			let ind=this.COL_DanmakuText.indexOf(t);
 			t._bitmap=null;
 			if(ind>=0)this.COL_DanmakuText.splice(ind,1);
-			//this.layer.removeChild(t);
 			this.tunnel.removeMark(t);
 			t.danmaku=null;
 			t.removeTime=Date.now();
@@ -287,7 +292,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(!this.enabled)return list;
 			for(let t of this.COL_DanmakuText){
 				if(!t.danmaku)continue;
-				if(t.x<=x && t.x+t.style.width>=x && t.y<=y && t.y+t.style.height>=y)
+				if(t.style.x<=x && t.style.x+t.style.width>=x && t.style.y<=y && t.style.y+t.style.height>=y)
 					list.push(t.danmaku);
 			}
 			return list;
