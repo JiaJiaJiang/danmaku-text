@@ -153,7 +153,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 						}else if(t.tunnelNumber>=0 && ((Mright&&(x+t.style.width)+30<cWidth) || (!Mright&&x>30))){
 							this.tunnel.removeMark(t);
 						}
-						ctx.drawImage(t._bitmap?t._bitmap:t._cache, (x-t.estimatePadding+0.5)|0, t.style.y-t.estimatePadding);
+						ctx.drawImage(t._bitmap?t._bitmap:t._cache, x-t.estimatePadding, t.style.y-t.estimatePadding);
 						break;
 					}
 					case 2:case 3:{
@@ -161,7 +161,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 							this.removeText(t);
 							continue;
 						}
-						ctx.drawImage(t._bitmap?t._bitmap:t._cache, (t.style.x-t.estimatePadding+0.5)|0, t.style.y-t.estimatePadding);
+						ctx.drawImage(t._bitmap?t._bitmap:t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 					}
 				}
 			}
