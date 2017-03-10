@@ -6,7 +6,7 @@ danmaku-frame text2d mod
 */
 'use strict';
 
-import CanvasObjLibrary from '../lib/CanvasObjLibrary/src/CanvasObjLibrary.js';
+import {CanvasObjLibrary,requestIdleCallback} from '../lib/CanvasObjLibrary/src/CanvasObjLibrary.js';
 
 /*
 danmaku obj struct
@@ -82,6 +82,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					this.start();
 				}
 			});
+			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
+			this._cleanCache=this._cleanCache.bind(this);
+			setInterval(this._cleanCache,5000);//set an interval for cache cleaning
 		}
 		media(media){
 			addEvents(media,{
@@ -133,99 +136,99 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return true;
 		}
 		_layerDrawFunc(ctx){
+			let t;
+			for(let i=0;i<this.COL_DanmakuText.length;i++){
+				t=this.COL_DanmakuText[i];
+				ctx.drawImage((t.useImageBitmap&&t._bitmap)?t._bitmap:t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
+			}
+		}
+		_checkNewDanmaku(){
+			const cHeight=this.COL.canvas.height,cWidth=this.COL.canvas.width;
+			let t,d,H=document.hidden;
+			if(this.list.length)
+			for(;(d=this.list[this.indexMark])&&(d.time<=this.frame.time);this.indexMark++){//add new danmaku
+				if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit ||H)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
+				t=this.COL_GraphCache.length?this.COL_GraphCache.shift():new this.COL.class.TextGraph();
+				t.onoverCheck=false;
+				t.danmaku=d;
+				t.drawn=false;
+				t.text=this.options.allowLines?d.text:d.text.replace(/\n/g,' ');
+				t.time=d.time;
+				t.font=Object.create(this.defaultStyle);
+				Object.assign(t.font,d.style);
+				t.style.opacity=t.font.opacity;
+				if(d.mode>1)t.font.textAlign='center';
+				t.prepare(true);
+				//find tunnel number
+				const size=t.style.height,tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
+				//calc margin
+				let margin=(tnum<0?0:tnum)%cHeight;
+				switch(d.mode){
+					case 0:case 1:case 3:{
+						t.style.y=margin;break;
+					}
+					case 2:{
+						t.style.y=cHeight-margin-t.style.height-1;
+					}
+				}
+				if(d.mode>1){
+					t.style.x=(this.COL.canvas.width-t.style.width)/2;
+				}else{
+					t.style.x=cWidth;
+				}
+				this.COL_DanmakuText.push(t);
+			}
+			//calc all danmaku's position
+			this._calcDanmakuPosition();
+		}
+		_calcDanmakuPosition(){
+			if((this.danmakuMoveTime==this.frame.time)||this.paused)return;
 			const 	cWidth=this.COL.canvas.width;
-					
-			let x,Mright,i,t,DT=this.COL_DanmakuText;
+			let x,R,i,t,DT=this.COL_DanmakuText,F=this.frame;
+			this.danmakuMoveTime=F.time;
+			for(i=0;i<DT.length;i++){
+				if(i+1<DT.length && DT[i].time<=DT[i+1].time)break;//clean danmakus at the wrong time
+				this.removeText(t);
+			}
 			for(i=0;i<DT.length;i++){
 				t=this.COL_DanmakuText[i];
-				if(i+1<DT.length && t.time>DT[i+1].time){//clean danmakus at the wrong time
-					this.removeText(t);
-					continue;
-				}
 				switch(t.danmaku.mode){
 					case 0:case 1:{
-						Mright=!t.danmaku.mode;
-						t.style.x=x=(Mright?cWidth:(-t.style.width))
-							+(Mright?-1:1)*this.frame.rate*(t.style.width+cWidth)*(this.frame.time-t.time)*this.options.speed/60000;
-						if((Mright&&x<-t.style.width) || (!Mright&&x>cWidth+t.style.width)){//go out the canvas
+						R=!t.danmaku.mode;
+						t.style.x=x=(R?cWidth:(-t.style.width))
+							+(R?-1:1)*F.rate*(t.style.width+cWidth)*(F.time-t.time)*this.options.speed/60000;
+						if((R&&x<-t.style.width) || (!R&&x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
-							continue;
-						}else if(t.tunnelNumber>=0 && ((Mright&&(x+t.style.width)+30<cWidth) || (!Mright&&x>30))){
+						}else if(t.tunnelNumber>=0 && ((R&&(x+t.style.width)+10<cWidth) || (!R&&x>30))){
 							this.tunnel.removeMark(t);
 						}
-						ctx.drawImage(t._bitmap?t._bitmap:t._cache, x-t.estimatePadding, t.style.y-t.estimatePadding);
 						break;
 					}
 					case 2:case 3:{
-						if((this.frame.time-t.time)>this.options.speed*1000/this.frame.rate){
+						if((F.time-t.time)>this.options.speed*1000/F.rate){
 							this.removeText(t);
-							continue;
 						}
-						ctx.drawImage(t._bitmap?t._bitmap:t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 					}
 				}
 			}
-				
+		}
+		_cleanCache(){//clean COL text object cache
+			const now=Date.now();
+			if(this.COL_GraphCache.length>20){//save 20 cached danmaku
+				for(let ti = 0;ti<this.COL_GraphCache.length;ti++){
+					if((now-this.COL_GraphCache[ti].removeTime) > 10000){//delete cache which has live over 10s
+						this.COL_GraphCache.splice(ti,1);
+					}else{break;}
+				}
+			}
 		}
 		draw(force){
-			if(!this.enabled)return;
-			//find danmaku from indexMark to current time
-			if(!force&&((this.danmakuMoveTime==this.frame.time)||this.paused))return;
-			const 	cHeight=this.COL.canvas.height,
-					now=Date.now();
-			let t,d;
-			if(!force&&this.list.length&&this.danmakuCheckSwitch&&!document.hidden){
-				for(;(d=this.list[this.indexMark])&&(d.time<=this.frame.time);this.indexMark++){//add new danmaku
-					if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit ||document.hidden)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
-					d=this.list[this.indexMark];
-					t=this.COL_GraphCache.length?this.COL_GraphCache.shift():new this.COL.class.TextGraph();
-					t.onoverCheck=false;
-					t.danmaku=d;
-					t.drawn=false;
-					t.text=this.options.allowLines?d.text:d.text.replace(/\n/g,' ');
-					t.time=d.time;
-					t.font=Object.create(this.defaultStyle);
-					Object.assign(t.font,d.style);
-					t.style.opacity=t.font.opacity;
-					if(d.mode>1)t.font.textAlign='center';
-					t.prepare(true);
-					//find tunnel number
-					const size=t.style.height,tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
-					//calc margin
-					let margin=(tnum<0?0:tnum)%cHeight;
-					switch(d.mode){
-						case 0:case 1:case 3:{
-							t.style.y=margin;break;
-						}
-						case 2:{
-							t.style.y=cHeight-margin-t.style.height-1;
-						}
-					}
-					if(d.mode>1){
-						t.style.x=(this.COL.canvas.width-t.style.width)/2;
-					}
-					this.COL_DanmakuText.push(t);
-				}
-				this.danmakuCheckSwitch=false;
-			}else{
-				this.danmakuCheckSwitch=true;
-			}
-			//calc all danmaku's position
-			this.danmakuMoveTime=this.frame.time;
+			if(!this.enabled || (!force&&this.paused))return;
 			this._clearCanvas();
-			
 			this.COL.draw();
-			//clean cache
-			if((now-this.cacheCleanTime)>5000){
-				this.cacheCleanTime=now;
-				if(this.COL_GraphCache.length>20){//save 20 cached danmaku
-					for(let ti = 0;ti<this.COL_GraphCache.length;ti++){
-						if((now-this.COL_GraphCache[ti].removeTime) > 10000){//delete cache which has live over 10s
-							this.COL_GraphCache.splice(ti,1);
-						}else{break;}
-					}
-				}
-			}
+
+			//find danmaku from indexMark to current time
+			requestIdleCallback(this._checkNewDanmaku);
 		}
 		removeText(t){//remove the danmaku from screen
 			let ind=this.COL_DanmakuText.indexOf(t);
@@ -241,8 +244,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.draw(true);
 		}
 		_evaluateIfFullClearMode(){
+			if(this.COL_DanmakuText.length>3)return true;
 			if(this.COL.debug.switch)return true;
-			if(this.canvas.width*this.canvas.height/this.COL_DanmakuText.length<50000)return true;
 			return false;
 		}
 		_clearCanvas(forceFull){
