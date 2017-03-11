@@ -101,10 +101,14 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			});
 		}
 		start(){
+			console.log('start')
 			this.paused=false;
+			this._clearCanvas();
+
 			//this.resetTimeOfDanmakuOnScreen();
 		}
 		pause(){
+			console.log('pause')
 			this.paused=true;
 		}
 		load(d){
@@ -142,10 +146,10 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_checkNewDanmaku(){
 			const cHeight=this.COL.canvas.height,cWidth=this.COL.canvas.width;
-			let t,d,H=document.hidden;
+			let t,d;
 			if(this.list.length)
 			for(;(d=this.list[this.indexMark])&&(d.time<=this.frame.time);this.indexMark++){//add new danmaku
-				if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit ||H)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
+				if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
 				if(this.COL_GraphCache.length){
 					t=this.COL_GraphCache.shift();
 				}else{
