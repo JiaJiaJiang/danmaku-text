@@ -180,30 +180,33 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this._calcDanmakuPosition();
 		}
 		_calcDanmakuPosition(){
-			if((this.danmakuMoveTime==this.frame.time)||this.paused)return;
+			let F=this.frame,T=F.time;
+			if((this.danmakuMoveTime==T)||this.paused)return;
 			const 	cWidth=this.COL.canvas.width;
-			let x,R,i,t,DT=this.COL_DanmakuText,F=this.frame;
-			this.danmakuMoveTime=F.time;
+			let x,R,i,t,DT=this.COL_DanmakuText;
+			this.danmakuMoveTime=T;
 			for(i=0;i<DT.length;i++){
 				if(i+1<DT.length && DT[i].time<=DT[i+1].time)break;//clean danmakus at the wrong time
-				this.removeText(t);
+				this.removeText(DT[i]);
 			}
 			for(i=0;i<DT.length;i++){
 				t=this.COL_DanmakuText[i];
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
-						t.style.x=x=(R?cWidth:(-t.style.width))
-							+(R?-1:1)*F.rate*(t.style.width+cWidth)*(F.time-t.time)*this.options.speed/60000;
+						x=(R?cWidth:(-t.style.width))
+							+(R?-1:1)*F.rate*(t.style.width+cWidth)*(T-t.time)*this.options.speed/60000;
 						if((R&&x<-t.style.width) || (!R&&x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
+							continue;
 						}else if(t.tunnelNumber>=0 && ((R&&(x+t.style.width)+10<cWidth) || (!R&&x>30))){
 							this.tunnel.removeMark(t);
 						}
+						t.style.x=x;
 						break;
 					}
 					case 2:case 3:{
-						if((F.time-t.time)>this.options.speed*1000/F.rate){
+						if((T-t.time)>this.options.speed*1000/F.rate){
 							this.removeText(t);
 						}
 					}
