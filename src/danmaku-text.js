@@ -123,9 +123,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return true;
 		}
 		loadList(danmakuArray){
-			for(let d of danmakuArray){
-				this.load(d);
-			}
+			danmakuArray.forEach(d=>this.load(d));
 		}
 		unload(d){
 			if(!d || d._!=='text')return false;
@@ -254,16 +252,16 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				return;
 			}
 			let ctx=this.COL.context
-			for(let t of this.COL_DanmakuText){
+			this.COL_DanmakuText.forEach(t=>{
 				if(t.drawn){
 					ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 				}else{t.drawn=true;}
-			}
+			});
 		}
 		clear(){//clear danmaku on the screen
-			for(let t of this.COL_DanmakuText){
+			this.COL_DanmakuText.forEach(t=>{
 				if(t.danmaku)this.removeText(t);
-			}
+			});
 			this.tunnel.reset();
 			this._clearCanvas(true);
 		}
@@ -278,19 +276,19 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		resetTimeOfDanmakuOnScreen(cTime=this.frame.time){
 			//cause the position of the danmaku is based on time
 			//and if you don't want these danmaku on the screen to disappear,their time should be reset
-			for(let t of this.COL_DanmakuText){
-				if(!t.danmaku)continue;
+			this.COL_DanmakuText.forEach(t=>{
+				if(!t.danmaku)return;
 				t.time=cTime-(this.danmakuMoveTime-t.time);
-			}
+			});
 		}
 		danmakuAt(x,y){//return a list of danmaku which is over this position
 			const list=[];
 			if(!this.enabled)return list;
-			for(let t of this.COL_DanmakuText){
-				if(!t.danmaku)continue;
+			this.COL_DanmakuText.forEach(t=>{
+				if(!t.danmaku)return;
 				if(t.style.x<=x && t.style.x+t.style.width>=x && t.style.y<=y && t.style.y+t.style.height>=y)
 					list.push(t.danmaku);
-			}
+			});
 			return list;
 		}
 		enable(){//enable the plugin
