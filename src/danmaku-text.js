@@ -146,19 +146,24 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(this.list.length)
 			for(;(d=this.list[this.indexMark])&&(d.time<=this.frame.time);this.indexMark++){//add new danmaku
 				if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit ||H)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
-				t=this.COL_GraphCache.length?this.COL_GraphCache.shift():new this.COL.class.TextGraph();
-				t.onoverCheck=false;
+				if(this.COL_GraphCache.length){
+					t=this.COL_GraphCache.shift();
+				}else{
+					t=new this.COL.class.TextGraph();
+					t.onoverCheck=false;
+					
+				}
 				t.danmaku=d;
 				t.drawn=false;
 				t.text=this.options.allowLines?d.text:d.text.replace(/\n/g,' ');
 				t.time=d.time;
-				t.font=Object.create(this.defaultStyle);
-				Object.assign(t.font,d.style);
+				t.font=Object.assign({},d.style);
+				t.font.__proto__=this.defaultStyle;
 				t.style.opacity=t.font.opacity;
 				if(d.mode>1)t.font.textAlign='center';
 				t.prepare(true);
 				//find tunnel number
-				const size=t.style.height,tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
+				const tnum=this.tunnel.getTunnel(t,this.COL.canvas.height);
 				//calc margin
 				let margin=(tnum<0?0:tnum)%cHeight;
 				switch(d.mode){
@@ -181,28 +186,27 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_calcDanmakuPosition(){
 			let F=this.frame,T=F.time;
-			if((this.danmakuMoveTime==T)||this.paused)return;
+			if((this.danmakuMoveTime===T)||this.paused)return;
 			const 	cWidth=this.COL.canvas.width;
-			let x,R,i,t,DT=this.COL_DanmakuText;
+			let R,i,t;
 			this.danmakuMoveTime=T;
-			for(i=0;i<DT.length;i++){
-				if(i+1<DT.length && DT[i].time<=DT[i+1].time)break;//clean danmakus at the wrong time
-				this.removeText(DT[i]);
+			for(i=0;i<this.COL_DanmakuText.length;i++){
+				if(i+1<this.COL_DanmakuText.length && this.COL_DanmakuText[i].time<=this.COL_DanmakuText[i+1].time)break;//clean danmakus at the wrong time
+				this.removeText(this.COL_DanmakuText[i]);
 			}
-			for(i=0;i<DT.length;i++){
+			for(i=this.COL_DanmakuText.length;i--;){
 				t=this.COL_DanmakuText[i];
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
-						x=(R?cWidth:(-t.style.width))
+						t.style.x=(R?cWidth:(-t.style.width))
 							+(R?-1:1)*F.rate*(t.style.width+cWidth)*(T-t.time)*this.options.speed/60000;
-						if((R&&x<-t.style.width) || (!R&&x>cWidth+t.style.width)){//go out the canvas
+						if((R&&t.style.x<-t.style.width) || (!R&&t.style.x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
 							continue;
-						}else if(t.tunnelNumber>=0 && ((R&&(x+t.style.width)+10<cWidth) || (!R&&x>30))){
+						}else if(t.tunnelNumber>=0 && ((R&&(t.style.x+t.style.width)+10<cWidth) || (!R&&t.style.x>30))){
 							this.tunnel.removeMark(t);
 						}
-						t.style.x=x;
 						break;
 					}
 					case 2:case 3:{
