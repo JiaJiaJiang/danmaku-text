@@ -89,8 +89,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		media(media){
 			addEvents(media,{
 				seeked:()=>{
-					this.time();
 					this.start();
+					this.time();
+					this._clearCanvas();
 				},
 				seeking:()=>{
 					this.pause();
@@ -103,7 +104,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		start(){
 			console.log('start')
 			this.paused=false;
-			this._clearCanvas();
 
 			//this.resetTimeOfDanmakuOnScreen();
 		}
@@ -138,24 +138,23 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return true;
 		}
 		_layerDrawFunc(ctx){
-			let t;
-			for(let i=0;i<this.COL_DanmakuText.length;i++){
+			for(let i=0,t;i<this.COL_DanmakuText.length;i++){
 				t=this.COL_DanmakuText[i];
+				t.drawn||(t.drawn=true);
 				ctx.drawImage((t.useImageBitmap&&t._bitmap)?t._bitmap:t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 			}
 		}
 		_checkNewDanmaku(){
 			const cHeight=this.COL.canvas.height,cWidth=this.COL.canvas.width;
-			let t,d;
+			let t,d,time=this.frame.time;
 			if(this.list.length)
-			for(;(d=this.list[this.indexMark])&&(d.time<=this.frame.time);this.indexMark++){//add new danmaku
-				if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit)continue;//continue if the number of danmaku on screen has up to limit or doc is not visible
+			for(;(this.indexMark<this.list.length)&&(d=this.list[this.indexMark])&&(d.time<=time);this.indexMark++){//add new danmaku
+				if(this.options.screenLimit>0 && this.COL_DanmakuText.length>=this.options.screenLimit){continue;}//continue if the number of danmaku on screen has up to limit or doc is not visible
 				if(this.COL_GraphCache.length){
 					t=this.COL_GraphCache.shift();
 				}else{
 					t=new this.COL.class.TextGraph();
 					t.onoverCheck=false;
-					
 				}
 				t.danmaku=d;
 				t.drawn=false;
@@ -194,12 +193,16 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			const 	cWidth=this.COL.canvas.width;
 			let R,i,t;
 			this.danmakuMoveTime=T;
-			for(i=0;i<this.COL_DanmakuText.length;i++){
+			/*for(i=0;i<this.COL_DanmakuText.length;i++){
 				if(i+1<this.COL_DanmakuText.length && this.COL_DanmakuText[i].time<=this.COL_DanmakuText[i+1].time)break;//clean danmakus at the wrong time
 				this.removeText(this.COL_DanmakuText[i]);
-			}
+			}*/
 			for(i=this.COL_DanmakuText.length;i--;){
 				t=this.COL_DanmakuText[i];
+				if(t.time>T){
+					this.removeText(t);
+					continue;
+				}
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
@@ -223,7 +226,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_cleanCache(){//clean COL text object cache
 			const now=Date.now();
-			if(this.COL_GraphCache.length>20){//save 20 cached danmaku
+			if(this.COL_GraphCache.length>30){//save 20 cached danmaku
 				for(let ti = 0;ti<this.COL_GraphCache.length;ti++){
 					if((now-this.COL_GraphCache[ti].removeTime) > 10000){//delete cache which has live over 10s
 						this.COL_GraphCache.splice(ti,1);
@@ -233,7 +236,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
-			this._clearCanvas();
+			this._clearCanvas(force);
 			this.COL.draw();
 
 			//find danmaku from indexMark to current time
@@ -262,25 +265,29 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				this.COL.clear();
 				return;
 			}
-			let ctx=this.COL.context
-			this.COL_DanmakuText.forEach(t=>{
+			let ctx=this.COL.context,t;
+			for(let i=this.COL_DanmakuText.length;i--;){
+				t=this.COL_DanmakuText[i];
 				if(t.drawn){
 					ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
-				}else{t.drawn=true;}
-			});
+				}
+			}
 		}
 		clear(){//clear danmaku on the screen
-			this.COL_DanmakuText.forEach(t=>{
-				if(t.danmaku)this.removeText(t);
-			});
+			for(let i=this.COL_DanmakuText.length,T;i--;){
+				T=this.COL_DanmakuText[i];
+				if(T.danmaku)this.removeText(T);
+			}
 			this.tunnel.reset();
 			this._clearCanvas(true);
 		}
-		reCheckIndexMark(t=this.frame.time){
+		reCheckIndexMark(t){
+			console.log(formatTime(t/1000,3600))
 			this.indexMark=dichotomy(this.list,t,0,this.list.length-1,true);
+			console.log(formatTime(this.list[this.indexMark].time/1000,3600))
 		}
 		time(t=this.frame.time){//reset time,you should invoke it when the media has seeked to another time
-			this.reCheckIndexMark();
+			this.reCheckIndexMark(t);
 			if(this.options.clearWhenTimeReset){this.clear();}
 			else{this.resetTimeOfDanmakuOnScreen();}
 		}
@@ -396,6 +403,14 @@ function init(DanmakuFrame,DanmakuFrameModule){
 
 function addEvents(target,events={}){
 	for(let e in events)e.split(/\,/g).forEach(e2=>target.addEventListener(e2,events[e]));
+}
+
+function formatTime(sec,total){
+	let r,s=sec|0,h=(s/3600)|0;
+	if(total>=3600)s=s%3600;
+	r=[((s/60)|0),(s%60)];
+	(total>=3600)&&r.unshift(h);
+	return r.join(':');
 }
 
 export default init;
