@@ -104,7 +104,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		start(){
 			console.log('start')
 			this.paused=false;
-
+			this._clearCanvas(true);
 			//this.resetTimeOfDanmakuOnScreen();
 		}
 		pause(){
