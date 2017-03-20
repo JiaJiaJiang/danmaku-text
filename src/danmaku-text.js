@@ -79,7 +79,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					this.pause();
 				}else{
 					this.reCheckIndexMark();
-					this.start();
+					if(this.frame.working)this.start();
+					else{this.draw(true);}
 				}
 			});
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
@@ -231,7 +232,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
 			this._clearCanvas(force);
-			this.COL.draw();
+			this.list.length&&this.COL.draw();
 
 			//find danmaku from indexMark to current time
 			requestIdleCallback(this._checkNewDanmaku);
