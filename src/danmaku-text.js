@@ -211,7 +211,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 						if((R&&t.style.x<-t.style.width) || (!R&&t.style.x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
 							continue;
-						}else if(t.tunnelNumber>=0 && ((R&&(t.style.x+t.style.width)+10<cWidth) || (!R&&t.style.x>30))){
+						}else if(t.tunnelNumber>=0 && ((R&&(t.style.x+t.style.width)+10<cWidth) || (!R&&t.style.x>10))){
 							this.tunnel.removeMark(t);
 						}
 						break;
