@@ -36,94 +36,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 	const defProp=Object.defineProperty;
 	const requestIdleCallback=window.requestIdleCallback||setImmediate;
 
-	class TextGraph{//code copied from CanvasObjLibrary
-			constructor(text=''){
-				this._fontString='';
-				this._renderList=null;
-				this.useImageBitmap=true;
-				this.style={};
-				this.font={};
-				this.text=text;
-				this._renderToCache=this._renderToCache.bind(this);
-				defProp(this,'_cache',{configurable:true});
-			}
-			prepare(async=false){//prepare text details
-				if(!this._cache){
-					defProp(this,'_cache',{value:document.createElement("canvas")});
-				}
-				let ta=[];
-				(this.font.fontStyle)&&ta.push(this.font.fontStyle);
-				(this.font.fontVariant)&&ta.push(this.font.fontVariant);
-				(this.font.fontWeight)&&ta.push(this.font.fontWeight);
-				ta.push(`${this.font.fontSize}px`);
-				(this.font.fontFamily)&&ta.push(this.font.fontFamily);
-				this._fontString = ta.join(' ');
-
-				const imgobj = this._cache,ct = (imgobj.ctx2d||(imgobj.ctx2d=imgobj.getContext("2d")));
-				ct.font = this._fontString;
-				this._renderList = this.text.split(/\n/g);
-				this.estimatePadding=Math.max(
-					this.font.shadowBlur+5+Math.max(Math.abs(this.font.shadowOffsetY),Math.abs(this.font.shadowOffsetX)),
-					this.font.strokeWidth+3
-				);
-				let w = 0,tw,lh=(typeof this.font.lineHeigh ==='number')?this.font.lineHeigh:this.font.fontSize;
-				for (let i = this._renderList.length; i -- ;) {
-					tw = ct.measureText(this._renderList[i]).width;
-					(tw>w)&&(w=tw);//max
-				}
-				imgobj.width = (this.style.width = w) + this.estimatePadding*2;
-				imgobj.height = (this.style.height = this._renderList.length * lh)+ ((lh<this.font.fontSize)?this.font.fontSize*2:0) + this.estimatePadding*2;
-
-				ct.translate(this.estimatePadding, this.estimatePadding);
-				if(async){
-					requestIdleCallback(this._renderToCache);
-				}else{
-					this._renderToCache();
-				}
-			}
-			_renderToCache(){
-				this.render(this._cache.ctx2d);
-				if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
-					createImageBitmap(this._cache).then((bitmap)=>{
-						if(this._bitmap)this._bitmap.close();
-						this._bitmap=bitmap;
-					});
-				}
-			}
-			render(ct){//render text
-				if(!this._renderList)return;
-				ct.save();
-				ct.font=this._fontString;//set font
-				ct.textBaseline = 'top';
-				ct.lineWidth = this.font.strokeWidth;
-				ct.fillStyle = this.font.color;
-				ct.strokeStyle = this.font.strokeColor;
-				ct.shadowBlur = this.font.shadowBlur;
-				ct.shadowColor= this.font.shadowColor;
-				ct.shadowOffsetX = this.font.shadowOffsetX;
-				ct.shadowOffsetY = this.font.shadowOffsetY;
-				ct.textAlign = this.font.textAlign;
-				let lh=(typeof this.font.lineHeigh ==='number')?this.font.lineHeigh:this.font.fontSize,
-					x;
-				switch(this.font.textAlign){
-					case 'left':case 'start':{
-						x=0;break;
-					}
-					case 'center':{
-						x=this.style.width/2;break;
-					}
-					case 'right':case 'end':{
-						x=this.style.width;
-					}
-				}
-
-				for (let i = this._renderList.length;i--;) {
-					this.font.strokeWidth&&ct.strokeText(this._renderList[i],x,lh*i);
-					this.font.fill&&ct.fillText(this._renderList[i],x, lh*i);
-				}
-				ct.restore();
-			}
-		}
 
 	class TextDanmaku extends DanmakuFrameModule{
 		constructor(frame){
@@ -244,7 +156,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			//round d.size to prevent Iifinity loop in tunnel
 			d.size=(d.size+0.5)|0;
 			if(d.size===NaN || d.size===Infinity)d.size=this.defaultStyle.fontSize;
-			return true;
+			return d;
 		}
 		loadList(danmakuArray){
 			danmakuArray.forEach(d=>this.load(d));
@@ -258,47 +170,52 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return true;
 		}
 		_checkNewDanmaku(){
-			const cHeight=this.canvas.height,cWidth=this.canvas.width;
-			let t,d,time=this.frame.time,hidden=document.hidden;
+			let d,time=this.frame.time,hidden=document.hidden;
 			if(this.list.length)
 			for(;(this.indexMark<this.list.length)&&(d=this.list[this.indexMark])&&(d.time<=time);this.indexMark++){//add new danmaku
 				if(this.options.screenLimit>0 && this.DanmakuText.length>=this.options.screenLimit ||hidden){continue;}//continue if the number of danmaku on screen has up to limit or doc is not visible
-				if(this.GraphCache.length){
-					t=this.GraphCache.shift();
-				}else{
-					t=new TextGraph();
-				}
-				t.danmaku=d;
-				t.drawn=false;
-				t.text=this.options.allowLines?d.text:d.text.replace(/\n/g,' ');
-				t.time=d.time;
-				Object.setPrototypeOf(t.font,this.defaultStyle);
-				Object.assign(t.font,d.style);
-
-				//t.style.opacity=t.font.opacity;
-				if(d.mode>1)t.font.textAlign='center';
-				t.prepare(true);
-				//find tunnel number
-				const tnum=this.tunnel.getTunnel(t,cHeight);
-				//calc margin
-				let margin=(tnum<0?0:tnum)%cHeight;
-				switch(d.mode){
-					case 0:case 1:case 3:{
-						t.style.y=margin;break;
-					}
-					case 2:{
-						t.style.y=cHeight-margin-t.style.height-1;
-					}
-				}
-				if(d.mode>1){
-					t.style.x=(cWidth-t.style.width)/2;
-				}else{
-					t.style.x=cWidth;
-				}
-				this.DanmakuText.push(t);
+				this._addNewDanmaku(d);
 			}
 			//calc all danmaku's position
 			this._calcDanmakuPosition();
+		}
+		_addNewDanmaku(d){
+			const cHeight=this.canvas.height,cWidth=this.canvas.width;
+			let t
+			if(this.GraphCache.length){
+				t=this.GraphCache.shift();
+			}else{
+				t=new TextGraph();
+			}
+			t.danmaku=d;
+			t.drawn=false;
+			t.text=this.options.allowLines?d.text:d.text.replace(/\n/g,' ');
+			t.time=d.time;
+			Object.setPrototypeOf(t.font,this.defaultStyle);
+			Object.assign(t.font,d.style);
+			if(d.color)t.font.color='#'+d.color;
+
+			//t.style.opacity=t.font.opacity;
+			if(d.mode>1)t.font.textAlign='center';
+			t.prepare(true);
+			//find tunnel number
+			const tnum=this.tunnel.getTunnel(t,cHeight);
+			//calc margin
+			let margin=(tnum<0?0:tnum)%cHeight;
+			switch(d.mode){
+				case 0:case 1:case 3:{
+					t.style.y=margin;break;
+				}
+				case 2:{
+					t.style.y=cHeight-margin-t.style.height-1;
+				}
+			}
+			if(d.mode>1){
+				t.style.x=(cWidth-t.style.width)/2;
+			}else{
+				t.style.x=cWidth;
+			}
+			this.DanmakuText.push(t);
 		}
 		_calcDanmakuPosition(){
 			let F=this.frame,T=F.time;
@@ -433,6 +350,96 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.textDanmakuContainer.hidden=true;
 			this.pause();
 			this.clear();
+		}
+	}
+
+
+	class TextGraph{//code copied from CanvasObjLibrary
+		constructor(text=''){
+			this._fontString='';
+			this._renderList=null;
+			this.useImageBitmap=true;
+			this.style={};
+			this.font={};
+			this.text=text;
+			this._renderToCache=this._renderToCache.bind(this);
+			defProp(this,'_cache',{configurable:true});
+		}
+		prepare(async=false){//prepare text details
+			if(!this._cache){
+				defProp(this,'_cache',{value:document.createElement("canvas")});
+			}
+			let ta=[];
+			(this.font.fontStyle)&&ta.push(this.font.fontStyle);
+			(this.font.fontVariant)&&ta.push(this.font.fontVariant);
+			(this.font.fontWeight)&&ta.push(this.font.fontWeight);
+			ta.push(`${this.font.fontSize}px`);
+			(this.font.fontFamily)&&ta.push(this.font.fontFamily);
+			this._fontString = ta.join(' ');
+
+			const imgobj = this._cache,ct = (imgobj.ctx2d||(imgobj.ctx2d=imgobj.getContext("2d")));
+			ct.font = this._fontString;
+			this._renderList = this.text.split(/\n/g);
+			this.estimatePadding=Math.max(
+				this.font.shadowBlur+5+Math.max(Math.abs(this.font.shadowOffsetY),Math.abs(this.font.shadowOffsetX)),
+				this.font.strokeWidth+3
+			);
+			let w = 0,tw,lh=(typeof this.font.lineHeigh ==='number')?this.font.lineHeigh:this.font.fontSize;
+			for (let i = this._renderList.length; i -- ;) {
+				tw = ct.measureText(this._renderList[i]).width;
+				(tw>w)&&(w=tw);//max
+			}
+			imgobj.width = (this.style.width = w) + this.estimatePadding*2;
+			imgobj.height = (this.style.height = this._renderList.length * lh)+ ((lh<this.font.fontSize)?this.font.fontSize*2:0) + this.estimatePadding*2;
+
+			ct.translate(this.estimatePadding, this.estimatePadding);
+			if(async){
+				requestIdleCallback(this._renderToCache);
+			}else{
+				this._renderToCache();
+			}
+		}
+		_renderToCache(){
+			this.render(this._cache.ctx2d);
+			if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
+				createImageBitmap(this._cache).then((bitmap)=>{
+					if(this._bitmap)this._bitmap.close();
+					this._bitmap=bitmap;
+				});
+			}
+		}
+		render(ct){//render text
+			if(!this._renderList)return;
+			ct.save();
+			ct.font=this._fontString;//set font
+			ct.textBaseline = 'top';
+			ct.lineWidth = this.font.strokeWidth;
+			ct.fillStyle = this.font.color;
+			ct.strokeStyle = this.font.strokeColor;
+			ct.shadowBlur = this.font.shadowBlur;
+			ct.shadowColor= this.font.shadowColor;
+			ct.shadowOffsetX = this.font.shadowOffsetX;
+			ct.shadowOffsetY = this.font.shadowOffsetY;
+			ct.textAlign = this.font.textAlign;
+			let lh=(typeof this.font.lineHeigh ==='number')?this.font.lineHeigh:this.font.fontSize,
+				x;
+			switch(this.font.textAlign){
+				case 'left':case 'start':{
+					x=0;break;
+				}
+				case 'center':{
+					x=this.style.width/2;break;
+				}
+				case 'right':case 'end':{
+					x=this.style.width;
+				}
+			}
+
+			for (let i = this._renderList.length;i--;) {
+				this.font.strokeWidth&&ct.strokeText(this._renderList[i],x,lh*i);
+				this.font.fill&&ct.fillText(this._renderList[i],x, lh*i);
+			}
+			ct.restore();
 		}
 	}
 
