@@ -193,7 +193,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			t.time=d.time;
 			Object.setPrototypeOf(t.font,this.defaultStyle);
 			Object.assign(t.font,d.style);
-			if(d.color)t.font.color='#'+d.color;
+			if(d.style.color){
+				if(t.font.color && t.font.color[0]!=='#'){
+					t.font.color='#'+d.style.color;
+				}
+			}
 
 			//t.style.opacity=t.font.opacity;
 			if(d.mode>1)t.font.textAlign='center';
