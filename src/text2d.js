@@ -4,7 +4,13 @@ LGPL license
 */
 class Text2d{
 	constructor(dText){
+		this.supported=false;
 		this.dText=dText;
+		if(!dText.context2d){
+			console.warn('text 2d not supported');
+			return;
+		}
+		this.supported=true;
 	}
 	draw(force){
 		//this.clear(force);
@@ -33,6 +39,9 @@ class Text2d{
 				ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 			}
 		}
+	}
+	resize(w,h){
+		//if(!this.supported)return;
 	}
 }
 export default Text2d;

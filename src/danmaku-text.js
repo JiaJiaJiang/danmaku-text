@@ -8,7 +8,6 @@ danmaku-frame text2d mod
 
 import '../lib/setImmediate/setImmediate.js'
 import Promise from '../lib/promise/promise.js'
-import Mat from '../lib/Mat/Mat.js'
 import Text2d from './text2d.js'
 import Text3d from './text3d.js'
 
@@ -35,7 +34,7 @@ danmaku mode
 function init(DanmakuFrame,DanmakuFrameModule){
 	const defProp=Object.defineProperty;
 	const requestIdleCallback=window.requestIdleCallback||setImmediate;
-
+	let useImageBitmap=false;
 
 	class TextDanmaku extends DanmakuFrameModule{
 		constructor(frame){
@@ -52,7 +51,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				lineHeight: null,//when this style is was not a number,the number will be the same as fontSize
 				fontSize: 30,
 				fontFamily: "Arial",
-				strokeWidth: 1,//outline width
+				strokeWidth: 1.5,//outline width
 				strokeColor: "#888",
 				shadowBlur: 5,
 				textAlign:'start',//left right center start end
@@ -65,8 +64,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			};
 
 			defProp(this,'renderMode',{configurable:true});
-			this.text2d=new Text2d(this);
-			this.text3d=new Text3d(this);
+			defProp(this,'activeRenderMode',{configurable:true,value:{}});
 			this.textDanmakuContainer=document.createElement('div');
 			this.textDanmakuContainer.classList.add('NyaP_fullfill');
 			this.canvas=document.createElement('canvas');//the canvas
@@ -78,12 +76,14 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.canvas.hidden=this.canvas3d.hidden=true;
 			this.context2d=this.canvas.getContext('2d');//the canvas context
 			try{
-				this.context3d=this.canvas.getContext('webgl');//the canvas3d context
+				this.context3d=this.canvas3d.getContext('webgl');//the canvas3d context
 			}catch(e){console.warn('WebGL not supported');}
 
 			this.textDanmakuContainer.appendChild(this.canvas);
 			this.textDanmakuContainer.appendChild(this.canvas3d);
 			frame.container.appendChild(this.textDanmakuContainer);
+			this.text2d=new Text2d(this);
+			this.text3d=new Text3d(this);
 			this.GraphCache=[];//COL text graph cache
 			this.DanmakuText=[];
 
@@ -94,7 +94,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				allowLines:false,//allow multi-line danmaku
 				screenLimit:0,//the most number of danmaku on the screen
 				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
-				speed:5,
+				speed:6.5,
 			}
 			document.addEventListener('visibilitychange',e=>{
 				if(document.hidden){
@@ -108,16 +108,23 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
 			this._cleanCache=this._cleanCache.bind(this);
 			setInterval(this._cleanCache,5000);//set an interval for cache cleaning
-			this.setRenderMode(2);
+			this.setRenderMode(3);
 		}
 		setRenderMode(n){
 			if(this.renderMode===n)return;
-			defProp(this,'renderMode',{value:n});
 			this.clear();
 			if(n===2){
+				if(!this.text2d.supported)return;
 				this.canvas.hidden=!(this.canvas3d.hidden=true);
+				useImageBitmap=true;
+				defProp(this,'activeRenderMode',{value:this.text2d});
+				defProp(this,'renderMode',{value:n});
 			}else if(n===3){
+				if(!this.text3d.supported)return;
 				this.canvas3d.hidden=!(this.canvas.hidden=true);
+				useImageBitmap=false;
+				defProp(this,'activeRenderMode',{value:this.text3d});
+				defProp(this,'renderMode',{value:n});
 			}
 		}
 		media(media){
@@ -181,7 +188,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_addNewDanmaku(d){
 			const cHeight=this.canvas.height,cWidth=this.canvas.width;
-			let t
+			let t;
 			if(this.GraphCache.length){
 				t=this.GraphCache.shift();
 			}else{
@@ -201,7 +208,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 
 			//t.style.opacity=t.font.opacity;
 			if(d.mode>1)t.font.textAlign='center';
-			t.prepare(true);
+			t.prepare();
 			//find tunnel number
 			const tnum=this.tunnel.getTunnel(t,cHeight);
 			//calc margin
@@ -220,6 +227,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				t.style.x=cWidth;
 			}
 			this.DanmakuText.push(t);
+			if(this.activeRenderMode.newDanmaku)this.activeRenderMode.newDanmaku(t);
 		}
 		_calcDanmakuPosition(){
 			let F=this.frame,T=F.time;
@@ -258,7 +266,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			const now=Date.now();
 			if(this.GraphCache.length>30){//save 20 cached danmaku
 				for(let ti = 0;ti<this.GraphCache.length;ti++){
-					if((now-this.GraphCache[ti].removeTime) > 10000){//delete cache which has live over 10s
+					if((now-this.GraphCache[ti].removeTime) > 10000){//delete cache which has not used for 10s
+						if(this.activeRenderMode.deleteTextObject)
+							this.activeRenderMode.deleteTextObject(this.GraphCache[ti]);
 						this.GraphCache.splice(ti,1);
 					}else{break;}
 				}
@@ -267,10 +277,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
 			this._clearCanvas(force);
-			if(this.renderMode===2){this.text2d.draw(force);}
-			else if(this.renderMode===3){this.text3d.draw(force);}
-			//this.list.length&&this.COL.draw();
-
+			if(this.activeRenderMode.draw)this.activeRenderMode.draw(force);
 			//find danmaku from indexMark to current time
 			requestIdleCallback(this._checkNewDanmaku);
 		}
@@ -284,9 +291,10 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.GraphCache.push(t);
 		}
 		resize(){
-			this.canvas.width=this.canvas3d.width=this.frame.container.offsetWidth;
-			this.canvas.height=this.canvas3d.height=this.frame.container.offsetHeight;
-			//this.COL.adjustCanvas();
+			let w=this.canvas.width=this.canvas3d.width=this.frame.container.offsetWidth;
+			let h=this.canvas.height=this.canvas3d.height=this.frame.container.offsetHeight;
+			this.text2d.resize(w,h);
+			this.text3d.resize(w,h);
 			this.draw(true);
 		}
 		_evaluateIfFullClearMode(){
@@ -362,7 +370,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		constructor(text=''){
 			this._fontString='';
 			this._renderList=null;
-			this.useImageBitmap=true;
 			this.style={};
 			this.font={};
 			this.text=text;
@@ -405,7 +412,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_renderToCache(){
 			this.render(this._cache.ctx2d);
-			if(this.useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
+			if(useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
 				createImageBitmap(this._cache).then((bitmap)=>{
 					if(this._bitmap)this._bitmap.close();
 					this._bitmap=bitmap;
