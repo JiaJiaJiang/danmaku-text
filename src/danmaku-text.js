@@ -184,7 +184,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				this._addNewDanmaku(d);
 			}
 			//calc all danmaku's position
-			this._calcDanmakuPosition();
+			//this._calcDanmakuPosition();
 		}
 		_addNewDanmaku(d){
 			const cHeight=this.canvas.height,cWidth=this.canvas.width;
@@ -277,6 +277,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
 			this._clearCanvas(force);
+			this._calcDanmakuPosition();
 			if(this.activeRenderMode.draw)this.activeRenderMode.draw(force);
 			//find danmaku from indexMark to current time
 			requestIdleCallback(this._checkNewDanmaku);

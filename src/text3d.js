@@ -64,8 +64,6 @@ class Text3d{
 		gl.clearColor(0, 0, 0, 0.0);
 		gl.enable(gl.BLEND);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
-		//gl.blendFunc(gl.DST_ALPHA,gl.SRC_ALPHA); 
-		//gl.blendFunc(gl.ONE,gl.ZERO);
 
 		this.maxTexSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
 		console.info('MAX_TEXTURE_SIZE',this.maxTexSize);
@@ -88,8 +86,6 @@ class Text3d{
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(this.uSampler,0);
-
-		//gl.vertexAttribPointer(this.atextureCoord,2,gl.FLOAT,false,0,0);
 	}
 	draw(force){
 		const gl=this.gl,l=this.dText.DanmakuText.length;
@@ -147,16 +143,6 @@ class Text3d{
 			t._cache.width,t._cache.height,
 		]), gl.STATIC_DRAW);
 		gl.bindBuffer(gl.ARRAY_BUFFER,null);
-
-
-		/*t.textureCoordBuffer||(t.textureCoordBuffer=gl.createBuffer());
-		gl.bindBuffer(gl.ARRAY_BUFFER,t.textureCoordBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER,commonTextureCoord,gl.STATIC_DRAW);
-		gl.vertexAttribPointer(this.atextureCoord,2,gl.FLOAT,false,0,0);*/
-
-		//console.log(t)
-		//gl.generateMipmap(gl.TEXTURE_2D);
-		//gl.bindTexture(gl.TEXTURE_2D, null);
 	}
 }
 
