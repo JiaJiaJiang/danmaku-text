@@ -89,6 +89,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 
 			this.cacheCleanTime=0;
 			this.danmakuMoveTime=0;
+			this.danmakuCheckTime=0;
 			this.danmakuCheckSwitch=true;
 			this.options={
 				allowLines:false,//allow multi-line danmaku
@@ -178,11 +179,13 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_checkNewDanmaku(){
 			let d,time=this.frame.time,hidden=document.hidden;
+			if(this.danmakuCheckTime===time)return;
 			if(this.list.length)
 			for(;(this.indexMark<this.list.length)&&(d=this.list[this.indexMark])&&(d.time<=time);this.indexMark++){//add new danmaku
 				if(this.options.screenLimit>0 && this.DanmakuText.length>=this.options.screenLimit ||hidden){continue;}//continue if the number of danmaku on screen has up to limit or doc is not visible
 				this._addNewDanmaku(d);
 			}
+			this.danmakuCheckTime=time;
 			//calc all danmaku's position
 			//this._calcDanmakuPosition();
 		}
@@ -276,8 +279,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
-			this._clearCanvas(force);
 			this._calcDanmakuPosition();
+			this._clearCanvas(force);
 			if(this.activeRenderMode.draw)this.activeRenderMode.draw(force);
 			//find danmaku from indexMark to current time
 			requestIdleCallback(this._checkNewDanmaku);

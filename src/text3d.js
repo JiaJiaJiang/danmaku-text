@@ -66,7 +66,6 @@ class Text3d{
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
 
 		this.maxTexSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
-		console.info('MAX_TEXTURE_SIZE',this.maxTexSize);
 
 
 		this.uSampler=gl.getUniformLocation(shaderProgram,"uSampler");
