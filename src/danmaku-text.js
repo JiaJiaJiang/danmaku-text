@@ -10,6 +10,7 @@ import '../lib/setImmediate/setImmediate.js'
 import Promise from '../lib/promise/promise.js'
 import Text2d from './text2d.js'
 import Text3d from './text3d.js'
+import TextCanvas from './textCanvas.js'
 
 if (!window.Promise)window.Promise = Promise;
 
@@ -43,6 +44,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.indexMark=0;//to record the index of last danmaku in the list
 			this.tunnel=new tunnelManager();
 			this.paused=true;
+			this.randomText=`danmaku_text_${(Math.random()*999999)|0}`;
 			this.defaultStyle={//these styles can be overwrote by the 'font' property of danmaku object
 				fontStyle: null,
 				fontWeight: 300,
@@ -63,27 +65,38 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				opacity:1,
 			};
 
+			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
+			document.styleSheets[0].insertRule(`#${this.randomText}_textCanvasContainer canvas{top:0;left:0;position:absolute;}`,0);
+			document.styleSheets[0].insertRule(`#${this.randomText}_textCanvasContainer{overflow:hidden;}`,0);
+
 			defProp(this,'renderMode',{configurable:true});
 			defProp(this,'activeRenderMode',{configurable:true,value:{}});
-			this.textDanmakuContainer=document.createElement('div');
-			this.textDanmakuContainer.classList.add('NyaP_fullfill');
+			this.textCanvasContainer=document.createElement('div');//for text canvas
+			this.textCanvasContainer.classList.add(`${this.randomText}_fullfill`);
+			this.textCanvasContainer.id=`${this.randomText}_textCanvasContainer`;
 			this.canvas=document.createElement('canvas');//the canvas
-			this.canvas.classList.add('NyaP_fullfill');
+			this.canvas.classList.add(`${this.randomText}_fullfill`);
 			this.canvas.id='text2d';
 			this.canvas3d=document.createElement('canvas');//the canvas
-			this.canvas3d.classList.add('NyaP_fullfill');
+			this.canvas3d.classList.add(`${this.randomText}_fullfill`);
 			this.canvas3d.id='text3d';
-			this.canvas.hidden=this.canvas3d.hidden=true;
+			this.textCanvasContainer.hidden=this.canvas.hidden=this.canvas3d.hidden=true;
 			this.context2d=this.canvas.getContext('2d');//the canvas context
-			try{
-				this.context3d=this.canvas3d.getContext('webgl');//the canvas3d context
-			}catch(e){console.warn('WebGL not supported');}
+			this.context3d=this.canvas3d.getContext('webgl');//the canvas3d context
+			if(!this.context3d)
+				this.context3d=this.canvas3d.getContext('expeimental-webgl');
 
-			this.textDanmakuContainer.appendChild(this.canvas);
-			this.textDanmakuContainer.appendChild(this.canvas3d);
-			frame.container.appendChild(this.textDanmakuContainer);
+			frame.container.appendChild(this.canvas);
+			frame.container.appendChild(this.canvas3d);
+			frame.container.appendChild(this.textCanvasContainer);
 			this.text2d=new Text2d(this);
 			this.text3d=new Text3d(this);
+			this.textCanvas=new TextCanvas(this);
+			this.modes={
+				1:this.textCanvas,
+				2:this.text2d,
+				3:this.text3d,
+			};
 			this.GraphCache=[];//COL text graph cache
 			this.DanmakuText=[];
 
@@ -109,24 +122,29 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
 			this._cleanCache=this._cleanCache.bind(this);
 			setInterval(this._cleanCache,5000);//set an interval for cache cleaning
-			this.setRenderMode(3);
+			this.setRenderMode(1);
 		}
 		setRenderMode(n){
 			if(this.renderMode===n)return;
+			if(!(n in this.modes) || !this.modes[n].supported)return;
+			this.activeRenderMode.hide&&this.activeRenderMode.hide();
 			this.clear();
-			if(n===2){
-				if(!this.text2d.supported)return;
-				this.canvas.hidden=!(this.canvas3d.hidden=true);
-				useImageBitmap=true;
-				defProp(this,'activeRenderMode',{value:this.text2d});
-				defProp(this,'renderMode',{value:n});
-			}else if(n===3){
-				if(!this.text3d.supported)return;
-				this.canvas3d.hidden=!(this.canvas.hidden=true);
-				useImageBitmap=false;
-				defProp(this,'activeRenderMode',{value:this.text3d});
-				defProp(this,'renderMode',{value:n});
+			switch(n){
+				case 1:{
+					this.textCanvasContainer.hidden=false;
+					break;
+				}
+				case 2:{
+					useImageBitmap=!(this.canvas.hidden=false);
+					break;
+				}
+				case 3:{
+					useImageBitmap=!(this.canvas3d.hidden=false);
+					break;
+				}
 			}
+			defProp(this,'activeRenderMode',{value:this.modes[n]});
+			defProp(this,'renderMode',{value:n});
 		}
 		media(media){
 			addEvents(media,{
@@ -187,7 +205,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 			this.danmakuCheckTime=time;
 			//calc all danmaku's position
-			//this._calcDanmakuPosition();
 		}
 		_addNewDanmaku(d){
 			const cHeight=this.canvas.height,cWidth=this.canvas.width;
@@ -293,6 +310,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			t.danmaku=null;
 			t.removeTime=Date.now();
 			this.GraphCache.push(t);
+			if(this.activeRenderMode.remove)this.activeRenderMode.remove(t);
 		}
 		resize(){
 			let w=this.canvas.width=this.canvas3d.width=this.frame.container.offsetWidth;
@@ -360,10 +378,10 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return list;
 		}
 		enable(){//enable the plugin
-			this.textDanmakuContainer.hidden=false;
+			this.textCanvasContainer.hidden=false;
 		}
 		disable(){//disable the plugin
-			this.textDanmakuContainer.hidden=true;
+			this.textCanvasContainer.hidden=true;
 			this.pause();
 			this.clear();
 		}

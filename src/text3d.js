@@ -117,6 +117,9 @@ class Text3d{
 		//to 2d canvas
 		gl.uniformMatrix4fv(this.u2dCoord,false,Mat.Identity(4).translate3d(-1,1,0).scale3d(2/canvas.width,-2/canvas.height,0));
 	}
+	disable(){
+		this.dText.canvas3d.hidden=true;
+	}
 	newDanmaku(t){
 		const gl=this.gl;
 		if(t._cache.height>this.maxTexSize || t._cache.width>this.maxTexSize){//ignore too large danmaku image

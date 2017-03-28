@@ -40,6 +40,9 @@ class Text2d{
 			}
 		}
 	}
+	disable(){
+		this.dText.canvas.hidden=true;
+	}
 	resize(w,h){
 		//if(!this.supported)return;
 	}
