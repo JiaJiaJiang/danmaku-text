@@ -7,6 +7,7 @@ class textModuleTemplate{
 	draw(){}
 	clear(){}
 	resize(){}
+	remove(){}
 	enable(){}
 	disable(){}
 	newDanmaku(){}

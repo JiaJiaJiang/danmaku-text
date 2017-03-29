@@ -270,7 +270,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
-			//this._calcDanmakuPosition();
 			this._clearCanvas(force);
 			this.activeRenderMode.draw(force);
 			//find danmaku from indexMark to current time

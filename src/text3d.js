@@ -105,10 +105,11 @@ class Text3d extends Template{
 			gl.bindBuffer(gl.ARRAY_BUFFER,t.verticesBuffer);
 			gl.vertexAttribPointer(this.aVertexPosition,2,gl.FLOAT,false,0,0);
 
-			gl.bindTexture(gl.TEXTURE_2D, t.texture);
+			gl.bindTexture(gl.TEXTURE_2D,t.texture);
 
-			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+			gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 		}
+		gl.flush();
 	}
 	clear(){
 		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
