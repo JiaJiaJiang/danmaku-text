@@ -65,33 +65,17 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				opacity:1,
 			};
 
-			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
-			document.styleSheets[0].insertRule(`#${this.randomText}_textCanvasContainer canvas{top:0;left:0;position:absolute;}`,0);
-			document.styleSheets[0].insertRule(`#${this.randomText}_textCanvasContainer{overflow:hidden;}`,0);
-
 			defProp(this,'renderMode',{configurable:true});
 			defProp(this,'activeRenderMode',{configurable:true,value:{}});
-			this.textCanvasContainer=document.createElement('div');//for text canvas
-			this.textCanvasContainer.classList.add(`${this.randomText}_fullfill`);
-			this.textCanvasContainer.id=`${this.randomText}_textCanvasContainer`;
-			this.canvas=document.createElement('canvas');//the canvas
-			this.canvas.classList.add(`${this.randomText}_fullfill`);
-			this.canvas.id='text2d';
-			this.canvas3d=document.createElement('canvas');//the canvas
-			this.canvas3d.classList.add(`${this.randomText}_fullfill`);
-			this.canvas3d.id='text3d';
-			this.textCanvasContainer.hidden=this.canvas.hidden=this.canvas3d.hidden=true;
-			this.context2d=this.canvas.getContext('2d');//the canvas context
-			this.context3d=this.canvas3d.getContext('webgl');//the canvas3d context
-			if(!this.context3d)
-				this.context3d=this.canvas3d.getContext('expeimental-webgl');
+			const con=this.container=document.createElement('div');
+			con.classList.add(`${this.randomText}_fullfill`);
+			frame.container.appendChild(con);
 
-			frame.container.appendChild(this.canvas);
-			frame.container.appendChild(this.canvas3d);
-			frame.container.appendChild(this.textCanvasContainer);
 			this.text2d=new Text2d(this);
 			this.text3d=new Text3d(this);
 			this.textCanvas=new TextCanvas(this);
+			
+			this.textCanvasContainer.hidden=this.canvas.hidden=this.canvas3d.hidden=true;
 			this.modes={
 				1:this.textCanvas,
 				2:this.text2d,
@@ -110,13 +94,15 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
 				speed:6.5,
 			}
-			document.addEventListener('visibilitychange',e=>{
-				if(document.hidden){
-					this.pause();
-				}else{
-					this.reCheckIndexMark();
-					if(this.frame.working)this.start();
-					else{this.draw(true);}
+			addEvents(document,{
+				visibilitychange:e=>{
+					if(document.hidden){
+						this.pause();
+					}else{
+						this.reCheckIndexMark();
+						if(this.frame.working)this.start();
+						else{this.draw(true);}
+					}
 				}
 			});
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
@@ -127,22 +113,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		setRenderMode(n){
 			if(this.renderMode===n)return;
 			if(!(n in this.modes) || !this.modes[n].supported)return;
-			this.activeRenderMode.hide&&this.activeRenderMode.hide();
+			this.activeRenderMode.disable&&this.activeRenderMode.disable();
 			this.clear();
-			switch(n){
-				case 1:{
-					this.textCanvasContainer.hidden=false;
-					break;
-				}
-				case 2:{
-					useImageBitmap=!(this.canvas.hidden=false);
-					break;
-				}
-				case 3:{
-					useImageBitmap=!(this.canvas3d.hidden=false);
-					break;
-				}
-			}
+			this.modes[n].enable();
 			defProp(this,'activeRenderMode',{value:this.modes[n]});
 			defProp(this,'renderMode',{value:n});
 		}
@@ -384,6 +357,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.textCanvasContainer.hidden=true;
 			this.pause();
 			this.clear();
+		}
+		set useImageBitmap(v){
+			useImageBitmap=v;
 		}
 	}
 

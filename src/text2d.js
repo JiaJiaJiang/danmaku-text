@@ -6,6 +6,11 @@ class Text2d{
 	constructor(dText){
 		this.supported=false;
 		this.dText=dText;
+		dText.canvas=document.createElement('canvas');//the canvas
+		dText.canvas.classList.add(`${dText.randomText}_fullfill`);
+		dText.canvas.id='text2d';
+		dText.context2d=dText.canvas.getContext('2d');//the canvas context
+		dText.container.appendChild(dText.canvas);
 		if(!dText.context2d){
 			console.warn('text 2d not supported');
 			return;
@@ -39,6 +44,9 @@ class Text2d{
 				ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 			}
 		}
+	}
+	enable(){
+		this.dText.useImageBitmap=!(this.dText.canvas.hidden=false);
 	}
 	disable(){
 		this.dText.canvas.hidden=true;

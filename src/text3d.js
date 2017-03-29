@@ -9,6 +9,14 @@ class Text3d{
 	constructor(dText){
 		this.dText=dText;
 		this.supported=false;
+		dText.canvas3d=document.createElement('canvas');//the canvas
+		dText.canvas3d.classList.add(`${dText.randomText}_fullfill`);
+		dText.canvas3d.id='text3d';
+		dText.context3d=dText.canvas3d.getContext('webgl');//the canvas3d context
+		dText.container.appendChild(dText.canvas3d);
+		if(!dText.context3d)
+			dText.context3d=dText.canvas3d.getContext('expeimental-webgl');
+
 		if(!dText.context3d){
 			console.warn('text 3d not supported');
 			return;
@@ -116,6 +124,10 @@ class Text3d{
 		gl.viewport(0,0,canvas.width,canvas.height);
 		//to 2d canvas
 		gl.uniformMatrix4fv(this.u2dCoord,false,Mat.Identity(4).translate3d(-1,1,0).scale3d(2/canvas.width,-2/canvas.height,0));
+	}
+	enable(){
+		this.dText.useImageBitmap=this.dText.canvas3d.hidden=false;
+
 	}
 	disable(){
 		this.dText.canvas3d.hidden=true;
