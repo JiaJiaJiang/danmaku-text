@@ -66,7 +66,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			};
 
 			defProp(this,'renderMode',{configurable:true});
-			defProp(this,'activeRenderMode',{configurable:true,value:{}});
+			defProp(this,'activeRenderMode',{configurable:true,value:null});
 			const con=this.container=document.createElement('div');
 			con.classList.add(`${this.randomText}_fullfill`);
 			frame.container.appendChild(con);
@@ -113,7 +113,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		setRenderMode(n){
 			if(this.renderMode===n)return;
 			if(!(n in this.modes) || !this.modes[n].supported)return;
-			this.activeRenderMode.disable&&this.activeRenderMode.disable();
+			this.activeRenderMode&&this.activeRenderMode.disable();
 			this.clear();
 			this.modes[n].enable();
 			defProp(this,'activeRenderMode',{value:this.modes[n]});
@@ -178,6 +178,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 			this.danmakuCheckTime=time;
 			//calc all danmaku's position
+			this._calcDanmakuPosition();
 		}
 		_addNewDanmaku(d){
 			const cHeight=this.canvas.height,cWidth=this.canvas.width;
@@ -220,7 +221,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				t.style.x=cWidth;
 			}
 			this.DanmakuText.push(t);
-			if(this.activeRenderMode.newDanmaku)this.activeRenderMode.newDanmaku(t);
+			this.activeRenderMode.newDanmaku(t);
 		}
 		_calcDanmakuPosition(){
 			let F=this.frame,T=F.time;
@@ -238,13 +239,14 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
 						t.style.x=(R?cWidth:(-t.style.width))
-							+(R?-1:1)*F.rate*(t.style.width+cWidth)*(T-t.time)*this.options.speed/60000;
+							+(R?-1:1)*F.rate*(t.style.width+1024)*(T-t.time)*this.options.speed/60000;
 						if((R&&t.style.x<-t.style.width) || (!R&&t.style.x>cWidth+t.style.width)){//go out the canvas
 							this.removeText(t);
 							continue;
 						}else if(t.tunnelNumber>=0 && ((R&&(t.style.x+t.style.width)+10<cWidth) || (!R&&t.style.x>10))){
 							this.tunnel.removeMark(t);
 						}
+						this.activeRenderMode.danmakuPosition(t);
 						break;
 					}
 					case 2:case 3:{
@@ -260,8 +262,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(this.GraphCache.length>30){//save 20 cached danmaku
 				for(let ti = 0;ti<this.GraphCache.length;ti++){
 					if((now-this.GraphCache[ti].removeTime) > 10000){//delete cache which has not used for 10s
-						if(this.activeRenderMode.deleteTextObject)
-							this.activeRenderMode.deleteTextObject(this.GraphCache[ti]);
+						this.activeRenderMode.deleteTextObject(this.GraphCache[ti]);
 						this.GraphCache.splice(ti,1);
 					}else{break;}
 				}
@@ -269,9 +270,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
-			this._calcDanmakuPosition();
+			//this._calcDanmakuPosition();
 			this._clearCanvas(force);
-			if(this.activeRenderMode.draw)this.activeRenderMode.draw(force);
+			this.activeRenderMode.draw(force);
 			//find danmaku from indexMark to current time
 			requestIdleCallback(this._checkNewDanmaku);
 		}
@@ -283,7 +284,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			t.danmaku=null;
 			t.removeTime=Date.now();
 			this.GraphCache.push(t);
-			if(this.activeRenderMode.remove)this.activeRenderMode.remove(t);
+			this.activeRenderMode.remove(t);
 		}
 		resize(){
 			let w=this.canvas.width=this.canvas3d.width=this.frame.container.offsetWidth;
@@ -292,28 +293,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.text3d.resize(w,h);
 			this.draw(true);
 		}
-		_evaluateIfFullClearMode(){
-			if(this.renderMode===3)return true;
-			if(this.DanmakuText.length>3)return true;
-			//if(this.COL.debug.switch)return true;
-			let l=this.GraphCache[this.GraphCache.length-1];
-			if(l&&l.drawn){
-				l.drawn=false;
-				return true;
-			}
-			return false;
-		}
+		
 		_clearCanvas(forceFull){
-			switch(this.renderMode){
-				case 2:{
-					forceFull||(forceFull=this._evaluateIfFullClearMode());
-					this.text2d.clear(forceFull);
-					break;
-				}
-				case 3:{
-					this.text3d.clear();
-				}
-			}
+			this.activeRenderMode&&this.activeRenderMode.clear(forceFull);
 		}
 		clear(){//clear danmaku on the screen
 			for(let i=this.DanmakuText.length,T;i--;){
@@ -541,5 +523,5 @@ function addEvents(target,events={}){
 function limitIn(num,min,max){//limit the number in a range
 	return num<min?min:(num>max?max:num);
 }
-
+function emptyFunc(){}
 export default init;

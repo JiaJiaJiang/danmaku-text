@@ -3,10 +3,11 @@ Copyright luojia@luojia.me
 LGPL license
 */
 import Mat from '../lib/Mat/Mat.js'
+import Template from './textModuleTemplate.js';
 
-
-class Text3d{
+class Text3d extends Template{
 	constructor(dText){
+		super();
 		this.dText=dText;
 		this.supported=false;
 		dText.canvas3d=document.createElement('canvas');//the canvas
@@ -159,6 +160,8 @@ class Text3d{
 		gl.bindBuffer(gl.ARRAY_BUFFER,null);
 	}
 }
+
+
 
 const commonTextureCoord=new Float32Array([
 	0.0,  0.0,

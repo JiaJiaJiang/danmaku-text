@@ -2,8 +2,11 @@
 Copyright luojia@luojia.me
 LGPL license
 */
-class Text2d{
+import Template from './textModuleTemplate.js';
+
+class Text2d extends Template{
 	constructor(dText){
+		super();
 		this.supported=false;
 		this.dText=dText;
 		dText.canvas=document.createElement('canvas');//the canvas
@@ -34,7 +37,7 @@ class Text2d{
 	}
 	clear(force){
 		let ctx=this.dText.context2d;
-		if(force){
+		if(force||this._evaluateIfFullClearMode()){
 			ctx.clearRect(0,0,this.dText.canvas.width,this.dText.canvas.height);
 			return;
 		}
@@ -45,14 +48,21 @@ class Text2d{
 			}
 		}
 	}
+	_evaluateIfFullClearMode(){
+		if(this.dText.DanmakuText.length>3)return true;
+		let l=this.dText.GraphCache[this.dText.GraphCache.length-1];
+		if(l&&l.drawn){
+			l.drawn=false;
+			return true;
+		}
+		return false;
+	}
 	enable(){
 		this.dText.useImageBitmap=!(this.dText.canvas.hidden=false);
 	}
 	disable(){
 		this.dText.canvas.hidden=true;
 	}
-	resize(w,h){
-		//if(!this.supported)return;
-	}
 }
+
 export default Text2d;
