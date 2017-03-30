@@ -64,6 +64,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				reverse:false,
 				opacity:1,
 			};
+			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{transform:translateZ(0);top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
 
 			defProp(this,'renderMode',{configurable:true});
 			defProp(this,'activeRenderMode',{configurable:true,value:null});
@@ -113,8 +114,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		setRenderMode(n){
 			if(this.renderMode===n)return;
 			if(!(n in this.modes) || !this.modes[n].supported)return;
-			this.activeRenderMode&&this.activeRenderMode.disable();
 			this.clear();
+			this.activeRenderMode&&this.activeRenderMode.disable();
 			this.modes[n].enable();
 			defProp(this,'activeRenderMode',{value:this.modes[n]});
 			defProp(this,'renderMode',{value:n});
@@ -257,11 +258,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				}
 			}
 		}
-		_cleanCache(){//clean text object cache
+		_cleanCache(force){//clean text object cache
 			const now=Date.now();
-			if(this.GraphCache.length>30){//save 20 cached danmaku
+			if(this.GraphCache.length>30 || force){//save 20 cached danmaku
 				for(let ti = 0;ti<this.GraphCache.length;ti++){
-					if((now-this.GraphCache[ti].removeTime) > 10000){//delete cache which has not used for 10s
+					if(force || (now-this.GraphCache[ti].removeTime) > 10000){//delete cache which has not used for 10s
 						this.activeRenderMode.deleteTextObject(this.GraphCache[ti]);
 						this.GraphCache.splice(ti,1);
 					}else{break;}

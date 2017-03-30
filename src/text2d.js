@@ -6,9 +6,8 @@ import Template from './textModuleTemplate.js';
 
 class Text2d extends Template{
 	constructor(dText){
-		super();
+		super(dText);
 		this.supported=false;
-		this.dText=dText;
 		dText.canvas=document.createElement('canvas');//the canvas
 		dText.canvas.classList.add(`${dText.randomText}_fullfill`);
 		dText.canvas.id='text2d';

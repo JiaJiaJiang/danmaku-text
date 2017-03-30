@@ -7,16 +7,14 @@ import Template from './textModuleTemplate.js';
 
 class Text3d extends Template{
 	constructor(dText){
-		super();
-		this.dText=dText;
+		super(dText);
 		this.supported=false;
 		dText.canvas3d=document.createElement('canvas');//the canvas
 		dText.canvas3d.classList.add(`${dText.randomText}_fullfill`);
 		dText.canvas3d.id='text3d';
-		dText.context3d=dText.canvas3d.getContext('webgl');//the canvas3d context
 		dText.container.appendChild(dText.canvas3d);
-		if(!dText.context3d)
-			dText.context3d=dText.canvas3d.getContext('expeimental-webgl');
+		dText.context3d=dText.canvas3d.getContext('webgl');//the canvas3d context
+		if(!dText.context3d)dText.context3d=dText.canvas3d.getContext('expeimental-webgl');
 
 		if(!dText.context3d){
 			console.warn('text 3d not supported');
@@ -76,7 +74,6 @@ class Text3d extends Template{
 
 		this.maxTexSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
-
 		this.uSampler=gl.getUniformLocation(shaderProgram,"uSampler");
 		this.u2dCoord=gl.getUniformLocation(shaderProgram,"u2dCoordinate");
 		this.uDanmakuPos=gl.getUniformLocation(shaderProgram,"uDanmakuPos");
@@ -97,22 +94,26 @@ class Text3d extends Template{
 	}
 	draw(force){
 		const gl=this.gl,l=this.dText.DanmakuText.length;
-		for(let i=0,t;i<l;i++){
-			t=this.dText.DanmakuText[i];
-			if(!t.glDanmaku)continue;
-			gl.uniform2f(this.uDanmakuPos,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding);
+		setImmediate(()=>{
+			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+			
+			for(let i=0,t;i<l;i++){
+				t=this.dText.DanmakuText[i];
+				if(!t.glDanmaku)continue;
+				gl.uniform2f(this.uDanmakuPos,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER,t.verticesBuffer);
-			gl.vertexAttribPointer(this.aVertexPosition,2,gl.FLOAT,false,0,0);
+				gl.bindBuffer(gl.ARRAY_BUFFER,t.verticesBuffer);
+				gl.vertexAttribPointer(this.aVertexPosition,2,gl.FLOAT,false,0,0);
 
-			gl.bindTexture(gl.TEXTURE_2D,t.texture);
+				gl.bindTexture(gl.TEXTURE_2D,t.texture);
 
-			gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-		}
-		gl.flush();
+				gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+			}
+			gl.flush();
+		});
 	}
 	clear(){
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		//this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 	}
 	deleteTextObject(t){
 		const gl=this.gl;
@@ -132,6 +133,7 @@ class Text3d extends Template{
 
 	}
 	disable(){
+		this.dText._cleanCache(true);
 		this.dText.canvas3d.hidden=true;
 	}
 	newDanmaku(t){

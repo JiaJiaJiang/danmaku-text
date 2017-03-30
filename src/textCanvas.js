@@ -6,10 +6,8 @@ import Template from './textModuleTemplate.js';
 
 class TextCanvas extends Template{
 	constructor(dText){
-		super();
-		this.dText=dText;
+		super(dText);
 		this.supported=dText.text2d.supported;
-		document.styleSheets[0].insertRule(`.${dText.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
 		document.styleSheets[0].insertRule(`#${dText.randomText}_textCanvasContainer canvas{top:0;left:0;position:absolute;}`,0);
 		document.styleSheets[0].insertRule(`#${dText.randomText}_textCanvasContainer{pointer-events:none;transform:translateZ(0);overflow:hidden;}`,0);
 

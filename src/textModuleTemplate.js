@@ -4,6 +4,9 @@ LGPL license
 
 */
 class textModuleTemplate{
+	constructor(dText){
+		this.dText=dText;
+	}
 	draw(){}
 	clear(){}
 	resize(){}
