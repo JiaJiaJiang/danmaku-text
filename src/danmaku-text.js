@@ -51,9 +51,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				fontVariant: null,
 				color: "#fff",
 				lineHeight: null,//when this style is was not a number,the number will be the same as fontSize
-				fontSize: 30,
+				fontSize: 24,
 				fontFamily: "Arial",
-				strokeWidth: 1.5,//outline width
+				strokeWidth: 1,//outline width
 				strokeColor: "#888",
 				shadowBlur: 5,
 				textAlign:'start',//left right center start end
@@ -61,8 +61,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				shadowOffsetX:0,
 				shadowOffsetY:0,
 				fill:true,//if the text should be filled
-				reverse:false,
-				opacity:1,
 			};
 			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{transform:translateZ(0);top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
 
@@ -137,8 +135,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		start(){
 			this.paused=false;
-			//this._clearCanvas(true);
-			//this.resetTimeOfDanmakuOnScreen();
 		}
 		pause(){
 			this.paused=true;
@@ -153,9 +149,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			ind=dichotomy(arr,d.time,0,arr.length-1,false)
 			arr.splice(ind,0,d);
 			if(ind<this.indexMark)this.indexMark++;
-			//round d.size to prevent Iifinity loop in tunnel
-			d.size=(d.size+0.5)|0;
-			if(d.size===NaN || d.size===Infinity)d.size=this.defaultStyle.fontSize;
+			//round d.style.fontSize to prevent Iifinity loop in tunnel
+			d.style.fontSize=(d.style.fontSize+0.5)|0;
+			if(d.style.fontSize===NaN || d.style.fontSize===Infinity || d.style.fontSize===0)d.style.fontSize=this.defaultStyle.fontstyle.fontSize;
 			return d;
 		}
 		loadList(danmakuArray){

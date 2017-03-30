@@ -16,9 +16,17 @@ class TextCanvas extends Template{
 		dText.textCanvasContainer.id=`${dText.randomText}_textCanvasContainer`;
 		dText.container.appendChild(dText.textCanvasContainer);
 	}
-	danmakuPosition(t){
-		t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,0,0)`;
+	draw(){
+		setImmediate(()=>{
+			for(let dT=this.dText,i=dT.DanmakuText.length,t;i--;){
+				if((t=dT.DanmakuText[i]).danmaku.mode>=2)continue;
+				t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
+			}
+		});
 	}
+	/*danmakuPosition(t){
+		t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,0,0)`;
+	}*/
 	remove(t){
 		this.dText.textCanvasContainer.removeChild(t._cache);
 	}
@@ -29,8 +37,7 @@ class TextCanvas extends Template{
 		this.dText.textCanvasContainer.hidden=true;
 	}
 	newDanmaku(t){
-		t._cache.style.top=`${t.style.y-t.estimatePadding}px`;
-		t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,0,0)`;
+		t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
 		this.dText.textCanvasContainer.appendChild(t._cache);
 	}
 }
