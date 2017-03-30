@@ -224,7 +224,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			let F=this.frame,T=F.time;
 			if((this.danmakuMoveTime===T)||this.paused)return;
 			const cWidth=this.canvas.width;
-			let R,i,t;
+			let R,i,t,style;
 			this.danmakuMoveTime=T;
 			for(i=this.DanmakuText.length;i--;){
 				t=this.DanmakuText[i];
@@ -232,15 +232,17 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					this.removeText(t);
 					continue;
 				}
+				style=t.style;
+
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
-						t.style.x=(R?cWidth:(-t.style.width))
-							+(R?-1:1)*F.rate*(t.style.width+1024)*(T-t.time)*this.options.speed/60000;
-						if((R&&t.style.x<-t.style.width) || (!R&&t.style.x>cWidth+t.style.width)){//go out the canvas
+						style.x=(R?cWidth:(-style.width))
+							+(R?-1:1)*F.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
+						if((R&&style.x<-style.width) || (!R&&style.x>cWidth+style.width)){//go out the canvas
 							this.removeText(t);
 							continue;
-						}else if(t.tunnelNumber>=0 && ((R&&(t.style.x+t.style.width)+10<cWidth) || (!R&&t.style.x>10))){
+						}else if(t.tunnelNumber>=0 && ((R&&(style.x+style.width)+10<cWidth) || (!R&&style.x>10))){
 							this.tunnel.removeMark(t);
 						}
 						this.activeRenderMode.danmakuPosition(t);

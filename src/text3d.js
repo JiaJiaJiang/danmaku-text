@@ -12,7 +12,6 @@ class Text3d extends Template{
 		dText.canvas3d=document.createElement('canvas');//the canvas
 		dText.canvas3d.classList.add(`${dText.randomText}_fullfill`);
 		dText.canvas3d.id='text3d';
-		dText.container.appendChild(dText.canvas3d);
 		dText.context3d=dText.canvas3d.getContext('webgl');//the canvas3d context
 		if(!dText.context3d)dText.context3d=dText.canvas3d.getContext('expeimental-webgl');
 
@@ -21,6 +20,7 @@ class Text3d extends Template{
 			return;
 		}
 		this.supported=true;
+		dText.container.appendChild(dText.canvas3d);
 		const gl=this.gl=dText.context3d,canvas=dText.canvas3d;
 		//init webgl
 

@@ -8,6 +8,7 @@ class TextCanvas extends Template{
 	constructor(dText){
 		super(dText);
 		this.supported=dText.text2d.supported;
+		if(!this.supported)return;
 		document.styleSheets[0].insertRule(`#${dText.randomText}_textCanvasContainer canvas{top:0;left:0;position:absolute;}`,0);
 		document.styleSheets[0].insertRule(`#${dText.randomText}_textCanvasContainer{pointer-events:none;transform:translateZ(0);overflow:hidden;}`,0);
 
