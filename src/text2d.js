@@ -20,18 +20,11 @@ class Text2d extends Template{
 		this.supported=true;
 	}
 	draw(force){
-		//this.clear(force);
 		let ctx=this.dText.context2d;
 		for(let i=0,t,dT=this.dText,l=dT.DanmakuText.length;i<l;i++){
 			t=dT.DanmakuText[i];
 			t.drawn||(t.drawn=true);
-			if(t.danmaku.highlight){
-				ctx.fillStyle='rgba(255,255,255,0.3)';
-				ctx.beginPath();
-				ctx.rect(t.style.x,t.style.y,t.style.width,t.style.height);
-				ctx.fill();
-			}
-			ctx.drawImage(t._bitmap?t._bitmap:t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
+			ctx.drawImage(t._bitmap||t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 		}
 	}
 	clear(force){

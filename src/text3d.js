@@ -27,25 +27,25 @@ class Text3d extends Template{
 		//shader
 		var shaders={
 		danmakuFrag:[gl.FRAGMENT_SHADER,`
-			varying lowp vec2 vDanmakuTexCoord;
-			uniform sampler2D uSampler;
+varying lowp vec2 vDanmakuTexCoord;
+uniform sampler2D uSampler;
 
-			void main(void) {
-				gl_FragColor = texture2D(uSampler, vec2(vDanmakuTexCoord.s, vDanmakuTexCoord.t));
-			}`],
+void main(void) {
+	gl_FragColor = texture2D(uSampler,vDanmakuTexCoord);
+}`],
 		danmakuVert:[gl.VERTEX_SHADER,`
-			attribute vec2 aVertexPosition;
-			attribute vec2 aDanmakuTexCoord;
+attribute vec2 aVertexPosition;
+attribute vec2 aDanmakuTexCoord;
 
-			uniform mat4 u2dCoordinate;
-			uniform vec2 uDanmakuPos;
+uniform mat4 u2dCoordinate;
+uniform vec2 uDanmakuPos;
 
-			varying lowp vec2 vDanmakuTexCoord;
+varying lowp vec2 vDanmakuTexCoord;
 
-			void main(void) {
-				gl_Position = u2dCoordinate * vec4(aVertexPosition+uDanmakuPos,0,1);
-				vDanmakuTexCoord = aDanmakuTexCoord;
-			}`],
+void main(void) {
+	gl_Position = u2dCoordinate * vec4(aVertexPosition+uDanmakuPos,0,1);
+	vDanmakuTexCoord = aDanmakuTexCoord;
+}`],
 		}
 		function shader(name){
 			var s=gl.createShader(shaders[name][0]);
@@ -96,7 +96,7 @@ class Text3d extends Template{
 		const gl=this.gl,l=this.dText.DanmakuText.length;
 		setImmediate(()=>{
 			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-			
+
 			for(let i=0,t;i<l;i++){
 				t=this.dText.DanmakuText[i];
 				if(!t.glDanmaku)continue;

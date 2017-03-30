@@ -402,6 +402,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		render(ct){//render text
 			if(!this._renderList)return;
 			ct.save();
+			if(this.danmaku.highlight){
+				ct.fillStyle='rgba(255,255,255,0.3)';
+				ct.beginPath();
+				ct.rect(0,0,this.style.width,this.style.height);
+				ct.fill();
+			}
 			ct.font=this._fontString;//set font
 			ct.textBaseline = 'top';
 			ct.lineWidth = this.font.strokeWidth;
