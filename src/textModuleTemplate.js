@@ -14,7 +14,6 @@ class textModuleTemplate{
 	enable(){}
 	disable(){}
 	newDanmaku(){}
-	danmakuPosition(){}
 	deleteTextObject(){}
 }
 

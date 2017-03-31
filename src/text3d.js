@@ -70,7 +70,7 @@ void main(void) {
 		//scene
 		gl.clearColor(0, 0, 0, 0.0);
 		gl.enable(gl.BLEND);
-		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
+		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA ,gl.ONE, gl.ONE_MINUS_SRC_ALPHA)
 
 		this.maxTexSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -87,19 +87,19 @@ void main(void) {
 		gl.bindBuffer(gl.ARRAY_BUFFER,this.commonTexCoordBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER,commonTextureCoord,gl.STATIC_DRAW);
 		gl.vertexAttribPointer(this.atextureCoord,2,gl.FLOAT,false,0,0);
-		gl.vertexAttribPointer(this.aVertexPosition,2,gl.FLOAT,false,0,0);
+		//gl.vertexAttribPointer(this.aVertexPosition,2,gl.FLOAT,false,0,0);
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(this.uSampler,0);
 	}
 	draw(force){
 		const gl=this.gl,l=this.dText.DanmakuText.length;
-		setImmediate(()=>{
-			this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		//setImmediate(()=>{
+			//this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
 			for(let i=0,t;i<l;i++){
 				t=this.dText.DanmakuText[i];
-				if(!t.glDanmaku)continue;
+				if(!t || !t.glDanmaku)continue;
 				gl.uniform2f(this.uDanmakuPos,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding);
 
 				gl.bindBuffer(gl.ARRAY_BUFFER,t.verticesBuffer);
@@ -110,10 +110,10 @@ void main(void) {
 				gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 			}
 			gl.flush();
-		});
+		//});
 	}
 	clear(){
-		//this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 	}
 	deleteTextObject(t){
 		const gl=this.gl;
@@ -160,7 +160,7 @@ void main(void) {
 			0,t._cache.height,
 			t._cache.width,t._cache.height,
 		]), gl.STATIC_DRAW);
-		gl.bindBuffer(gl.ARRAY_BUFFER,null);
+		//gl.bindBuffer(gl.ARRAY_BUFFER,null);
 	}
 }
 
@@ -172,5 +172,6 @@ const commonTextureCoord=new Float32Array([
 	0.0,  1.0,
 	1.0,  1.0,
 ]);
+
 
 export default Text3d;

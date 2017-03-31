@@ -107,7 +107,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
 			this._cleanCache=this._cleanCache.bind(this);
 			setInterval(this._cleanCache,5000);//set an interval for cache cleaning
-			this.setRenderMode(1);
+			this.setRenderMode(3);
 		}
 		setRenderMode(n){
 			if(this.renderMode===n)return;
@@ -125,12 +125,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					this.time();
 					this._clearCanvas();
 				},
-				seeking:()=>{
-					this.pause();
-				},
-				stalled:()=>{
-					this.pause();
-				},
+				seeking:()=>this.pause(),
+				stalled:()=>this.pause(),
 			});
 		}
 		start(){
@@ -197,9 +193,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				}
 			}
 
-			//t.style.opacity=t.font.opacity;
 			if(d.mode>1)t.font.textAlign='center';
-			t.prepare();
+			t.prepare(this.renderMode===3?false:true);
 			//find tunnel number
 			const tnum=this.tunnel.getTunnel(t,cHeight);
 			//calc margin
@@ -239,13 +234,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 						R=!t.danmaku.mode;
 						style.x=(R?cWidth:(-style.width))
 							+(R?-1:1)*F.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
-						if((R&&style.x<-style.width) || (!R&&style.x>cWidth+style.width)){//go out the canvas
+						if(t.tunnelNumber>=0 && ((R&&(style.x+style.width)+10<cWidth) || (!R&&style.x>10))){
+							this.tunnel.removeMark(t);
+						}else if((R&&style.x<-style.width) || (!R&&style.x>cWidth+style.width)){//go out the canvas
 							this.removeText(t);
 							continue;
-						}else if(t.tunnelNumber>=0 && ((R&&(style.x+style.width)+10<cWidth) || (!R&&style.x>10))){
-							this.tunnel.removeMark(t);
 						}
-						this.activeRenderMode.danmakuPosition(t);
 						break;
 					}
 					case 2:case 3:{
@@ -339,8 +333,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.clear();
 		}
 		set useImageBitmap(v){
-			useImageBitmap=v;
+			useImageBitmap=(typeof createImageBitmap ==='function')?v:false;
 		}
+		get useImageBitmap(){return useImageBitmap;}
 	}
 
 
@@ -390,9 +385,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		_renderToCache(){
 			this.render(this._cache.ctx2d);
-			if(useImageBitmap && typeof createImageBitmap ==='function'){//use ImageBitmap
-				createImageBitmap(this._cache).then((bitmap)=>{
-					if(this._bitmap)this._bitmap.close();
+			if(useImageBitmap){//use ImageBitmap
+				if(this._bitmap){
+					this._bitmap.close();
+					this._bitmap=null;
+				}
+				createImageBitmap(this._cache).then(bitmap=>{
 					this._bitmap=bitmap;
 				});
 			}

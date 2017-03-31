@@ -17,19 +17,17 @@ class Text2d extends Template{
 			return;
 		}
 		dText.container.appendChild(dText.canvas);
-		dText.context2d.globalCompositeOperation='hard-light';
 		this.supported=true;
 	}
 	draw(force){
 		let ctx=this.dText.context2d,
-			ca=ctx.canvas,
-			cW=ca.width,
-			dT=this.dText,
-			i=dT.DanmakuText.length,
+			cW=ctx.canvas.width,
+			dT=this.dText.DanmakuText,
+			i=0,
 			t;
-		for(;i--;){
-			t=dT.DanmakuText[i]
-			t.drawn||(t.drawn=true);
+
+		for(;i<dT.length;i++){
+			(t=dT[i]).drawn||(t.drawn=true);
 			if(cW>=t.style.width){
 				ctx.drawImage(t._bitmap||t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 			}else if(t.style.x-t.estimatePadding>=0){

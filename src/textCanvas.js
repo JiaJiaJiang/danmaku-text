@@ -25,9 +25,6 @@ class TextCanvas extends Template{
 			}
 		});
 	}
-	/*danmakuPosition(t){
-		t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,0,0)`;
-	}*/
 	remove(t){
 		this.dText.textCanvasContainer.removeChild(t._cache);
 	}
