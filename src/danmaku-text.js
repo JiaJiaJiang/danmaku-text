@@ -290,6 +290,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			let h=this.canvas.height=this.canvas3d.height=this.frame.container.offsetHeight;
 			this.text2d.resize(w,h);
 			this.text3d.resize(w,h);
+			this.textCanvas.resize(w,h);
 			this.draw(true);
 		}
 		

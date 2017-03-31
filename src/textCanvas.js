@@ -39,7 +39,7 @@ class TextCanvas extends Template{
 			t._cache.className='paused';
 			let X=this.dText._calcSideDanmakuPosition(t,T,this.dText.canvas.width);
 			t._cache.style.transform=`translate3d(${(((X-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
-			t.running=false;
+			t.running=true;
 		}
 	}
 	start(){
@@ -49,6 +49,13 @@ class TextCanvas extends Template{
 			t._cache.className='moving';
 			t.running=false;
 		}
+	}
+	resize(){
+		this.pause();
+		if(!this.dText.paused)setImmediate(()=>{
+			this.start();	
+		});
+		
 	}
 	remove(t){
 		this.dText.textCanvasContainer.removeChild(t._cache);
