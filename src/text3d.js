@@ -108,7 +108,7 @@ void main(void) {
 		gl.flush();
 	}
 	clear(){
-		this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+		//this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 	}
 	deleteTextObject(t){
 		const gl=this.gl;

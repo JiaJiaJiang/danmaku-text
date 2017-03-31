@@ -23,16 +23,15 @@ class Text2d extends Template{
 		let ctx=this.dText.context2d,
 			cW=ctx.canvas.width,
 			dT=this.dText.DanmakuText,
-			i=0,
+			i=dT.length,
 			t;
-
-		for(;i<dT.length;i++){
+		ctx.globalCompositeOperation='destination-over';
+		for(;i--;){
 			(t=dT[i]).drawn||(t.drawn=true);
 			if(cW>=t.style.width){
 				ctx.drawImage(t._bitmap||t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 			}else if(t.style.x-t.estimatePadding>=0){
-				ctx.drawImage(t._bitmap||t._cache, 0,0,cW,t._cache.height,
-													t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,cW,t._cache.height);
+				ctx.drawImage(t._bitmap||t._cache, 0,0,cW,t._cache.height,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,cW,t._cache.height);
 			}else{
 				ctx.drawImage(t._bitmap||t._cache, t.estimatePadding-t.style.x,0,cW,t._cache.height,0,t.style.y-t.estimatePadding,cW,t._cache.height);
 			}
