@@ -4,6 +4,7 @@ LGPL license
 */
 import Mat from '../lib/Mat/Mat.js'
 import Template from './textModuleTemplate.js';
+const requestIdleCallback=window.requestIdleCallback||setImmediate;
 
 class Text3d extends Template{
 	constructor(dText){
@@ -133,18 +134,25 @@ void main(void) {
 	}
 	newDanmaku(t){
 		const gl=this.gl;
+		t.glDanmaku=false;
 		if(t._cache.height>this.maxTexSize || t._cache.width>this.maxTexSize){//ignore too large danmaku image
-			t.glDanmaku=false;
 			console.warn('Ignore a danmaku width too large size',t.danmaku);
 			return;
 		}
-		let tex=t.texture||(t.texture=gl.createTexture());
-		t.glDanmaku=true;
-		gl.bindTexture(gl.TEXTURE_2D,tex);
-		gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
-		gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,t._cache);
+		let tex;
+		if(!(tex=t.texture)){
+			tex=t.texture=gl.createTexture();
+			gl.bindTexture(gl.TEXTURE_2D,tex);
+			gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+		}
+		
+		requestIdleCallback(()=>{
+			gl.bindTexture(gl.TEXTURE_2D,tex);
+			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,t._cache);
+			t.glDanmaku=true;
+		});
 
 		//vert
 		t.verticesBuffer||(t.verticesBuffer=gl.createBuffer());
