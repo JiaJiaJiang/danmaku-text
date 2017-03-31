@@ -24,13 +24,12 @@ class Text2d extends Template{
 			cW=ctx.canvas.width,
 			dT=this.dText.DanmakuText,
 			i=dT.length,
-			bitmapSupport=this.dText.useImageBitmap,
 			t;
-		this.clear();
 		ctx.globalCompositeOperation='destination-over';
+		this.clear();
 		for(;i--;){
 			(t=dT[i]).drawn||(t.drawn=true);
-			if(/*!bitmapSupport || */cW>=t._cache.width){
+			if(cW>=t._cache.width){
 				ctx.drawImage(t._bitmap||t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 			}else if(t.style.x-t.estimatePadding>=0){
 				ctx.drawImage(t._bitmap||t._cache, 0,0,cW,t._cache.height,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,cW,t._cache.height);

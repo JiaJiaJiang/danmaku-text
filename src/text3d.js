@@ -163,7 +163,6 @@ void main(void) {
 			0,t._cache.height,
 			t._cache.width,t._cache.height,
 		]), gl.STATIC_DRAW);
-		//gl.bindBuffer(gl.ARRAY_BUFFER,null);
 	}
 }
 
