@@ -8,6 +8,8 @@ class textModuleTemplate{
 		this.dText=dText;
 	}
 	draw(){}
+	pause(){}
+	start(){}
 	clear(){}
 	resize(){}
 	remove(){}

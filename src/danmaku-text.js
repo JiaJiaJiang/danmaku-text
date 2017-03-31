@@ -131,9 +131,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		start(){
 			this.paused=false;
+			this.activeRenderMode.start();
 		}
 		pause(){
 			this.paused=true;
+			this.activeRenderMode.pause();
 		}
 		load(d){
 			if(!d || d._!=='text'){return false;}
@@ -171,7 +173,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 			this.danmakuCheckTime=time;
 			//calc all danmaku's position
-			this._calcDanmakuPosition();
+			this._calcDanmakusPosition();
 		}
 		_addNewDanmaku(d){
 			const cHeight=this.canvas.height,cWidth=this.canvas.width;
@@ -207,19 +209,24 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					t.style.y=cHeight-margin-t.style.height-1;
 				}
 			}
-			if(d.mode>1){
-				t.style.x=(cWidth-t.style.width)/2;
-			}else{
-				t.style.x=cWidth;
+			switch(d.mode){
+				case 0:{t.style.x=cWidth;break;}
+				case 1:{t.style.x=-t.style.width;break;}
+				case 2:case 3:{t.style.x=(cWidth-t.style.width)/2;}
 			}
 			this.DanmakuText.push(t);
 			this.activeRenderMode.newDanmaku(t);
 		}
-		_calcDanmakuPosition(){
+		_calcSideDanmakuPosition(t,T,cWidth){
+			let R=!t.danmaku.mode,style=t.style;
+			return (R?cWidth:(-style.width))
+					+(R?-1:1)*this.frame.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
+		}
+		_calcDanmakusPosition(){
 			let F=this.frame,T=F.time;
 			if((this.danmakuMoveTime===T)||this.paused)return;
-			const cWidth=this.canvas.width;
-			let R,i,t,style;
+			const cWidth=this.canvas.width,rMode=this.renderMode;
+			let R,i,t,style,X;
 			this.danmakuMoveTime=T;
 			for(i=this.DanmakuText.length;i--;){
 				t=this.DanmakuText[i];
@@ -232,11 +239,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
-						style.x=(R?cWidth:(-style.width))
-							+(R?-1:1)*F.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
-						if(t.tunnelNumber>=0 && ((R&&(style.x+style.width)+10<cWidth) || (!R&&style.x>10))){
+						X=this._calcSideDanmakuPosition(t,T,cWidth);
+						if(rMode!==1)style.x=X;
+						if(t.tunnelNumber>=0 && ((R&&(X+style.width)+10<cWidth) || (!R&&X>10)) ){
 							this.tunnel.removeMark(t);
-						}else if((R&&style.x<-style.width) || (!R&&style.x>cWidth+style.width)){//go out the canvas
+						}else if( (R&&(X<-style.width-10)) || (!R&&(X>cWidth+style.width+10)) ){//go out the canvas
 							this.removeText(t);
 							continue;
 						}
