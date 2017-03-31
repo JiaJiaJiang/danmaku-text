@@ -62,7 +62,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				shadowOffsetY:0,
 				fill:true,//if the text should be filled
 			};
-			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{transform:translateZ(0);top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
+			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
 
 			defProp(this,'renderMode',{configurable:true});
 			defProp(this,'activeRenderMode',{configurable:true,value:null});
@@ -107,7 +107,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
 			this._cleanCache=this._cleanCache.bind(this);
 			setInterval(this._cleanCache,5000);//set an interval for cache cleaning
-			this.setRenderMode(3);
+			this.setRenderMode(1);
 		}
 		setRenderMode(n){
 			if(this.renderMode===n)return;
@@ -263,7 +263,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
-			this._clearCanvas(force);
+			//this._clearCanvas(force);
 			this.activeRenderMode.draw(force);
 			//find danmaku from indexMark to current time
 			requestIdleCallback(this._checkNewDanmaku);

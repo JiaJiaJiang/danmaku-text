@@ -25,6 +25,7 @@ class Text2d extends Template{
 			dT=this.dText.DanmakuText,
 			i=dT.length,
 			t;
+		this.clear();
 		ctx.globalCompositeOperation='destination-over';
 		for(;i--;){
 			(t=dT[i]).drawn||(t.drawn=true);
