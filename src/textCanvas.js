@@ -18,12 +18,13 @@ class TextCanvas extends Template{
 		dText.container.appendChild(dText.textCanvasContainer);
 	}
 	draw(){
-		setImmediate(()=>{
 			for(let dT=this.dText,i=dT.DanmakuText.length,t;i--;){
 				if((t=dT.DanmakuText[i]).danmaku.mode>=2)continue;
+		//setImmediate(()=>{
 				t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
+			
+		//});
 			}
-		});
 	}
 	remove(t){
 		this.dText.textCanvasContainer.removeChild(t._cache);

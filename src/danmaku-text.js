@@ -384,6 +384,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 		}
 		_renderToCache(){
+			if(!this.danmaku)return;
 			this.render(this._cache.ctx2d);
 			if(useImageBitmap){//use ImageBitmap
 				if(this._bitmap){
