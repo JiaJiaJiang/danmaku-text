@@ -26,7 +26,7 @@ class Text2d extends Template{
 			i=dT.length,
 			t;
 		ctx.globalCompositeOperation='destination-over';
-		this.clear();
+		this.clear(force);
 		for(;i--;){
 			(t=dT[i]).drawn||(t.drawn=true);
 			if(cW>=t._cache.width){

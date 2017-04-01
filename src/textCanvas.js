@@ -17,6 +17,11 @@ class TextCanvas extends Template{
 		dText.textCanvasContainer.classList.add(`${dText.randomText}_fullfill`);
 		dText.textCanvasContainer.id=`${dText.randomText}_textCanvasContainer`;
 		dText.container.appendChild(dText.textCanvasContainer);
+		document.addEventListener('visibilitychange',e=>{
+			if(dText.renderMode===1 &&!document.hidden){
+				this.resetPos();
+			}
+		});
 	}
 	draw(){
 		setImmediate(()=>{
@@ -50,12 +55,14 @@ class TextCanvas extends Template{
 			t.running=false;
 		}
 	}
-	resize(){
+	resetPos(){
 		this.pause();
 		if(!this.dText.paused)setImmediate(()=>{
 			this.start();	
 		});
-		
+	}
+	resize(){
+		this.resetPos();
 	}
 	remove(t){
 		this.dText.textCanvasContainer.removeChild(t._cache);
