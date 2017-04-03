@@ -225,7 +225,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		_calcDanmakusPosition(){
 			let F=this.frame,T=F.time;
 			if((this.danmakuMoveTime===T)||this.paused)return;
-			const cWidth=this.canvas.width,rMode=this.renderMode;
+			const cWidth=this.canvas.width;
 			let R,i,t,style,X;
 			this.danmakuMoveTime=T;
 			for(i=this.DanmakuText.length;i--;){
@@ -239,8 +239,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				switch(t.danmaku.mode){
 					case 0:case 1:{
 						R=!t.danmaku.mode;
-						X=this._calcSideDanmakuPosition(t,T,cWidth);
-						if(rMode!==1)style.x=X;
+						style.x=X=this._calcSideDanmakuPosition(t,T,cWidth);
 						if(t.tunnelNumber>=0 && ((R&&(X+style.width)+10<cWidth) || (!R&&X>10)) ){
 							this.tunnel.removeMark(t);
 						}else if( (R&&(X<-style.width-10)) || (!R&&(X>cWidth+style.width+10)) ){//go out the canvas
