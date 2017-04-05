@@ -70,6 +70,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			con.classList.add(`${this.randomText}_fullfill`);
 			frame.container.appendChild(con);
 
+			//init modes
 			this.text2d=new Text2d(this);
 			this.text3d=new Text3d(this);
 			this.textCanvas=new TextCanvas(this);
@@ -83,9 +84,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.GraphCache=[];//COL text graph cache
 			this.DanmakuText=[];
 
+			//opt time record
 			this.cacheCleanTime=0;
 			this.danmakuMoveTime=0;
 			this.danmakuCheckTime=0;
+
 			this.danmakuCheckSwitch=true;
 			this.options={
 				allowLines:false,//allow multi-line danmaku
@@ -110,8 +113,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.setRenderMode(1);
 		}
 		setRenderMode(n){
-			if(this.renderMode===n)return;
-			if(!(n in this.modes) || !this.modes[n].supported)return;
+			if(this.renderMode===n || !(n in this.modes) || !this.modes[n].supported)return;
 			this.clear();
 			this.activeRenderMode&&this.activeRenderMode.disable();
 			this.modes[n].enable();
@@ -173,8 +175,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				this._addNewDanmaku(d);
 			}
 			this.danmakuCheckTime=time;
-			//calc all danmaku's position
-			//this._calcDanmakusPosition();
 		}
 		_addNewDanmaku(d){
 			const cHeight=this.canvas.height,cWidth=this.canvas.width;
@@ -224,10 +224,10 @@ function init(DanmakuFrame,DanmakuFrameModule){
 					+(R?-1:1)*this.frame.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
 		}
 		_calcDanmakusPosition(){
-			let F=this.frame,T=F.time;
+			let T=this.frame.time;
 			if((this.danmakuMoveTime===T)||this.paused)return;
 			const cWidth=this.canvas.width;
-			let R,i,t,style,X;
+			let R,i,t,style,X,rate=this.frame.rate;
 			this.danmakuMoveTime=T;
 			for(i=this.DanmakuText.length;i--;){
 				t=this.DanmakuText[i];
@@ -250,7 +250,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 						break;
 					}
 					case 2:case 3:{
-						if((T-t.time)>this.options.speed*1000/F.rate){
+						if((T-t.time)>this.options.speed*1000/rate){
 							this.removeText(t);
 						}
 					}
@@ -270,17 +270,15 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		draw(force){
 			if(!this.enabled || (!force&&this.paused))return;
-			//this._clearCanvas(force);
 			this._calcDanmakusPosition();
 			this.activeRenderMode.draw(force);
 			requestIdleCallback(this._checkNewDanmaku);
 		}
 		removeText(t){//remove the danmaku from screen
 			let ind=this.DanmakuText.indexOf(t);
-			t._bitmap=null;
 			if(ind>=0)this.DanmakuText.splice(ind,1);
 			this.tunnel.removeMark(t);
-			t.danmaku=null;
+			t._bitmap=t.danmaku=null;
 			t.removeTime=Date.now();
 			this.GraphCache.push(t);
 			this.activeRenderMode.remove(t);
@@ -315,14 +313,14 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		resetTimeOfDanmakuOnScreen(cTime){
 			//cause the position of the danmaku is based on time
-			//and if you don't want these danmaku on the screen to disappear,their time should be reset
+			//and if you don't want these danmaku on the screen to disappear after seeking,their time should be reset
 			if(cTime===undefined)cTime=this.frame.time;
 			this.DanmakuText.forEach(t=>{
 				if(!t.danmaku)return;
 				t.time=cTime-(this.danmakuMoveTime-t.time);
 			});
 		}
-		danmakuAt(x,y){//return a list of danmaku which is over this position
+		danmakuAt(x,y){//return a list of danmaku which covers this position
 			const list=[];
 			if(!this.enabled)return list;
 			this.DanmakuText.forEach(t=>{
@@ -460,9 +458,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				size=tobj.style.height,
 				ti=0,
 				tnum=-1;
-			if(typeof size !=='number' || size<0){
+			if(typeof size !=='number' || size<=0){
 				console.error('Incorrect size:'+size);
-				size=1;
+				size=24;
 			}
 			if(size>cHeight)return 0;
 
