@@ -62,7 +62,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				shadowOffsetY:0,
 				fill:true,//if the text should be filled
 			};
-			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
+			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{transform: translateZ(0);top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
 
 			defProp(this,'renderMode',{configurable:true});
 			defProp(this,'activeRenderMode',{configurable:true,value:null});
@@ -119,6 +119,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.modes[n].enable();
 			defProp(this,'activeRenderMode',{value:this.modes[n]});
 			defProp(this,'renderMode',{value:n});
+			this.activeRenderMode.resize();
 		}
 		media(media){
 			addEvents(media,{
@@ -177,13 +178,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.danmakuCheckTime=time;
 		}
 		_addNewDanmaku(d){
-			const cHeight=this.canvas.height,cWidth=this.canvas.width;
-			let t;
-			if(this.GraphCache.length){
-				t=this.GraphCache.shift();
-			}else{
-				t=new TextGraph();
-			}
+			const cHeight=this.height,cWidth=this.width;
+			let t=this.GraphCache.length?this.GraphCache.shift():new TextGraph();
 			t.danmaku=d;
 			t.drawn=false;
 			t.text=this.options.allowLines?d.text:d.text.replace(/\n/g,' ');
@@ -223,10 +219,10 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return (R?cWidth:(-style.width))
 					+(R?-1:1)*this.frame.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
 		}
-		_calcDanmakusPosition(){
+		_calcDanmakusPosition(force){
 			let T=this.frame.time;
-			if((this.danmakuMoveTime===T)||this.paused)return;
-			const cWidth=this.canvas.width;
+			if(!force&&((this.danmakuMoveTime===T)||this.paused))return;
+			const cWidth=this.width;
 			let R,i,t,style,X,rate=this.frame.rate;
 			this.danmakuMoveTime=T;
 			for(i=this.DanmakuText.length;i--;){
@@ -269,8 +265,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 		}
 		draw(force){
-			if(!this.enabled || (!force&&this.paused))return;
-			this._calcDanmakusPosition();
+			if((!force&&this.paused)||!this.enabled)return;
+			this._calcDanmakusPosition(force);
 			this.activeRenderMode.draw(force);
 			requestIdleCallback(this._checkNewDanmaku);
 		}
@@ -284,14 +280,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.activeRenderMode.remove(t);
 		}
 		resize(){
-			let w=this.canvas.width=this.canvas3d.width=this.frame.container.offsetWidth;
-			let h=this.canvas.height=this.canvas3d.height=this.frame.container.offsetHeight;
-			this.text2d.resize(w,h);
-			this.text3d.resize(w,h);
-			this.textCanvas.resize(w,h);
+			if(this.activeRenderMode)this.activeRenderMode.resize();
 			this.draw(true);
 		}
-		
 		_clearCanvas(forceFull){
 			this.activeRenderMode&&this.activeRenderMode.clear(forceFull);
 		}
@@ -342,6 +333,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			useImageBitmap=(typeof createImageBitmap ==='function')?v:false;
 		}
 		get useImageBitmap(){return useImageBitmap;}
+		get width(){return this.frame.width;}
+		get height(){return this.frame.height;}
 	}
 
 

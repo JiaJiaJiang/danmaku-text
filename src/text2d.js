@@ -64,6 +64,11 @@ class Text2d extends Template{
 		}
 		return false;
 	}
+	resize(){
+		let C=this.dText.canvas;
+		C.width=this.dText.width;
+		C.height=this.dText.height;
+	}
 	enable(){
 		this.dText.useImageBitmap=!(this.dText.canvas.hidden=false);
 	}
