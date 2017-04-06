@@ -12,7 +12,7 @@ class Text3d extends Template{
 		this.supported=false;
 		dText.canvas3d=document.createElement('canvas');//the canvas
 		dText.canvas3d.classList.add(`${dText.randomText}_fullfill`);
-		dText.canvas3d.id='text3d';
+		dText.canvas3d.id=`${dText.randomText}_text3d`;
 		dText.context3d=dText.canvas3d.getContext('webgl');//the canvas3d context
 		if(!dText.context3d)dText.context3d=dText.canvas3d.getContext('expeimental-webgl');
 

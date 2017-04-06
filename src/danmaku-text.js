@@ -62,7 +62,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				shadowOffsetY:0,
 				fill:true,//if the text should be filled
 			};
-			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{transform: translateZ(0);top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
+			document.styleSheets[0].insertRule(`.${this.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`,0);
 
 			defProp(this,'renderMode',{configurable:true});
 			defProp(this,'activeRenderMode',{configurable:true,value:null});

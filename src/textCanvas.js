@@ -28,7 +28,7 @@ class TextCanvas extends Template{
 		this.dText.textCanvasContainer.classList.remove('moving');
 		for(let dT=this.dText,i=dT.DanmakuText.length,t;i--;){
 			if((t=dT.DanmakuText[i]).danmaku.mode>=2)continue;
-			let X=this.dText._calcSideDanmakuPosition(t,T,this.dText.canvas.width);
+			let X=this.dText._calcSideDanmakuPosition(t,T,this.dText.width);
 			t._cache.style.transform=`translate3d(${(((X-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
 		}
 	}
@@ -43,7 +43,7 @@ class TextCanvas extends Template{
 	_move(t,T=this.dText.frame.time){
 		requestAnimationFrame(()=>{
 			if(!t.danmaku)return;
-			let X=this.dText._calcSideDanmakuPosition(t,T+500000,this.dText.canvas.width);
+			let X=this.dText._calcSideDanmakuPosition(t,T+500000,this.dText.width);
 			t._cache.style.transform=`translate3d(${(((X-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
 		});
 	}

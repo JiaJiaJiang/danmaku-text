@@ -10,7 +10,7 @@ class Text2d extends Template{
 		this.supported=false;
 		dText.canvas=document.createElement('canvas');//the canvas
 		dText.canvas.classList.add(`${dText.randomText}_fullfill`);
-		dText.canvas.id='text2d';
+		dText.canvas.id=`${dText.randomText}_text2d`;
 		dText.context2d=dText.canvas.getContext('2d');//the canvas contex
 		if(!dText.context2d){
 			console.warn('text 2d not supported');
