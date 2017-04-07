@@ -7,12 +7,10 @@ danmaku-frame text2d mod
 'use strict';
 
 import '../lib/setImmediate/setImmediate.js'
-import Promise from '../lib/promise/promise.js'
 import Text2d from './text2d.js'
 import Text3d from './text3d.js'
 import TextCanvas from './textCanvas.js'
 
-if (!window.Promise)window.Promise = Promise;
 
 
 /*
