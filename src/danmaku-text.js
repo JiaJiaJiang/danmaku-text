@@ -150,7 +150,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(ind<this.indexMark)this.indexMark++;
 			//round d.style.fontSize to prevent Iifinity loop in tunnel
 			d.style.fontSize=(d.style.fontSize+0.5)|0;
-			if(d.style.fontSize===NaN || d.style.fontSize===Infinity || d.style.fontSize===0)d.style.fontSize=this.defaultStyle.fontstyle.fontSize;
+			if(isNaN(d.style.fontSize)|| d.style.fontSize===Infinity || d.style.fontSize===0)d.style.fontSize=this.defaultStyle.fontstyle.fontSize;
 			if(typeof d.mode !== 'number')d.mode=0;
 			return d;
 		}
