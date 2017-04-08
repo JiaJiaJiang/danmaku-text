@@ -237,7 +237,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 						style.x=X=this._calcSideDanmakuPosition(t,T,cWidth);
 						if(t.tunnelNumber>=0 && ((R&&(X+style.width)+10<cWidth) || (!R&&X>10)) ){
 							this.tunnel.removeMark(t);
-						}else if( (R&&(X<-style.width-10)) || (!R&&(X>cWidth+style.width+10)) ){//go out the canvas
+						}else if( (R&&(X<-style.width-20)) || (!R&&(X>cWidth+style.width+20)) ){//go out the canvas
 							this.removeText(t);
 							continue;
 						}

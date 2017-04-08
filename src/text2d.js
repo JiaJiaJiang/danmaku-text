@@ -29,7 +29,7 @@ class Text2d extends Template{
 		this.clear(force);
 		for(;i--;){
 			(t=dT[i]).drawn||(t.drawn=true);
-			if(cW>=t._cache.width){
+			if(cW>=t._cache.width){//danmaku that smaller than canvas width
 				ctx.drawImage(t._bitmap||t._cache, t.style.x-t.estimatePadding, t.style.y-t.estimatePadding);
 			}else if(t.style.x-t.estimatePadding>=0){
 				ctx.drawImage(t._bitmap||t._cache, 0,0,cW,t._cache.height,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,cW,t._cache.height);
@@ -43,15 +43,14 @@ class Text2d extends Template{
 		}
 	}
 	clear(force){
-		let ctx=this.dText.context2d;
 		if(force||this._evaluateIfFullClearMode()){
-			ctx.clearRect(0,0,this.dText.canvas.width,this.dText.canvas.height);
+			this.dText.context2d.clearRect(0,0,this.dText.canvas.width,this.dText.canvas.height);
 			return;
 		}
 		for(let i=this.dText.DanmakuText.length,t;i--;){
 			t=this.dText.DanmakuText[i];
 			if(t.drawn){
-				ctx.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
+				this.dText.context2d.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 			}
 		}
 	}
