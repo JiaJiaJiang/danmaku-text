@@ -9,13 +9,13 @@ class Text2d extends Template{
 		super(dText);
 		this.supported=false;
 		dText.canvas=document.createElement('canvas');//the canvas
-		dText.canvas.classList.add(`${dText.randomText}_fullfill`);
-		dText.canvas.id=`${dText.randomText}_text2d`;
 		dText.context2d=dText.canvas.getContext('2d');//the canvas contex
 		if(!dText.context2d){
 			console.warn('text 2d not supported');
 			return;
 		}
+		dText.canvas.classList.add(`${dText.randomText}_fullfill`);
+		dText.canvas.id=`${dText.randomText}_text2d`;
 		dText.container.appendChild(dText.canvas);
 		this.supported=true;
 	}
@@ -43,15 +43,15 @@ class Text2d extends Template{
 		}
 	}
 	clear(force){
+		const D=this.dText;
 		if(force||this._evaluateIfFullClearMode()){
-			this.dText.context2d.clearRect(0,0,this.dText.canvas.width,this.dText.canvas.height);
+			D.context2d.clearRect(0,0,D.canvas.width,D.canvas.height);
 			return;
 		}
-		for(let i=this.dText.DanmakuText.length,t;i--;){
-			t=this.dText.DanmakuText[i];
-			if(t.drawn){
-				this.dText.context2d.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
-			}
+		for(let i=D.DanmakuText.length,t;i--;){
+			t=D.DanmakuText[i];
+			if(t.drawn)
+				D.context2d.clearRect(t.style.x-t.estimatePadding,t.style.y-t.estimatePadding,t._cache.width,t._cache.height);
 		}
 	}
 	_evaluateIfFullClearMode(){
@@ -64,9 +64,9 @@ class Text2d extends Template{
 		return false;
 	}
 	resize(){
-		let C=this.dText.canvas;
-		C.width=this.dText.width;
-		C.height=this.dText.height;
+		let D=this.dText,C=D.canvas;
+		C.width=D.width;
+		C.height=D.height;
 	}
 	enable(){
 		this.dText.useImageBitmap=!(this.dText.canvas.hidden=false);

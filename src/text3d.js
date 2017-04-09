@@ -20,41 +20,37 @@ class Text3d extends Template{
 			console.warn('text 3d not supported');
 			return;
 		}
-		this.supported=true;
 		dText.container.appendChild(dText.canvas3d);
 		const gl=this.gl=dText.context3d,canvas=dText.canvas3d;
 		//init webgl
 
 		//shader
 		var shaders={
-		danmakuFrag:[gl.FRAGMENT_SHADER,`
-varying lowp vec2 vDanmakuTexCoord;
-uniform sampler2D uSampler;
-
-void main(void) {
-	gl_FragColor = texture2D(uSampler,vDanmakuTexCoord);
-}`],
-		danmakuVert:[gl.VERTEX_SHADER,`
-attribute vec2 aVertexPosition;
-attribute vec2 aDanmakuTexCoord;
-
-uniform mat4 u2dCoordinate;
-uniform vec2 uDanmakuPos;
-
-varying lowp vec2 vDanmakuTexCoord;
-
-void main(void) {
-	gl_Position = u2dCoordinate * vec4(aVertexPosition+uDanmakuPos,0,1);
-	vDanmakuTexCoord = aDanmakuTexCoord;
-}`],
+			danmakuFrag:[gl.FRAGMENT_SHADER,`
+				varying lowp vec2 vDanmakuTexCoord;
+				uniform sampler2D uSampler;
+				void main(void) {
+					gl_FragColor = texture2D(uSampler,vDanmakuTexCoord);
+				}`
+			],
+			danmakuVert:[gl.VERTEX_SHADER,`
+				attribute vec2 aVertexPosition;
+				attribute vec2 aDanmakuTexCoord;
+				uniform mat4 u2dCoordinate;
+				uniform vec2 uDanmakuPos;
+				varying lowp vec2 vDanmakuTexCoord;
+				void main(void) {
+					gl_Position = u2dCoordinate * vec4(aVertexPosition+uDanmakuPos,0,1);
+					vDanmakuTexCoord = aDanmakuTexCoord;
+				}`
+			],
 		}
 		function shader(name){
 			var s=gl.createShader(shaders[name][0]);
 			gl.shaderSource(s,shaders[name][1]);
 			gl.compileShader(s);
-			if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {	
-				throw("An error occurred compiling the shaders: " + gl.getShaderInfoLog(s));	
-			}
+			if (!gl.getShaderParameter(s,gl.COMPILE_STATUS))
+				throw("An error occurred compiling the shaders: " + gl.getShaderInfoLog(s));
 			return s;
 		}
 		var fragmentShader = shader("danmakuFrag");
@@ -65,6 +61,7 @@ void main(void) {
 		gl.linkProgram(shaderProgram);
 		if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
 			console.error("Unable to initialize the shader program.");
+			return;
 		}
 		gl.useProgram(shaderProgram);
 
@@ -92,6 +89,8 @@ void main(void) {
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(this.uSampler,0);
+
+		this.supported=true;
 	}
 	draw(force){
 		const gl=this.gl,l=this.dText.DanmakuText.length;
@@ -128,7 +127,6 @@ void main(void) {
 	}
 	enable(){
 		this.dText.useImageBitmap=this.dText.canvas3d.hidden=false;
-
 	}
 	disable(){
 		this.dText._cleanCache(true);

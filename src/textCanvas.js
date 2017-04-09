@@ -13,63 +13,56 @@ class TextCanvas extends Template{
 		dText.frame.styleSheet.insertRule(`#${dText.randomText}_textCanvasContainer.moving canvas{transition:transform 500s linear;}`,0);
 		dText.frame.styleSheet.insertRule(`#${dText.randomText}_textCanvasContainer{will-change:transform;pointer-events:none;overflow:hidden;}`,0);
 
-		dText.textCanvasContainer=document.createElement('div');//for text canvas
-		dText.textCanvasContainer.classList.add(`${dText.randomText}_fullfill`);
-		dText.textCanvasContainer.id=`${dText.randomText}_textCanvasContainer`;
-		dText.container.appendChild(dText.textCanvasContainer);
+		this.container=dText.textCanvasContainer=document.createElement('div');//for text canvas
+		this.container.classList.add(`${dText.randomText}_fullfill`);
+		this.container.id=`${dText.randomText}_textCanvasContainer`;
+		dText.container.appendChild(this.container);
 		document.addEventListener('visibilitychange',e=>{
 			if(dText.renderMode===1 &&!document.hidden){
 				this.resetPos();
 			}
 		});
 	}
-	pause(){
-		let T=this.dText.frame.time;
-		this.dText.textCanvasContainer.classList.remove('moving');
-		for(let dT=this.dText,i=dT.DanmakuText.length,t;i--;){
-			if((t=dT.DanmakuText[i]).danmaku.mode>=2)continue;
-			let X=this.dText._calcSideDanmakuPosition(t,T,this.dText.width);
-			t._cache.style.transform=`translate3d(${(((X-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
+	_toggle(s){
+		let D=this.dText,T=D.frame.time;
+		this.container.classList[s?'add':'remove']('moving');
+		for(let i=D.DanmakuText.length,t;i--;){
+			if((t=D.DanmakuText[i]).danmaku.mode>=2)continue;
+			if(s){requestAnimationFrame(a=>this._move(t,T+500000));}
+			else{this._move(t,T);}
 		}
+	}
+	pause(){
+		this._toggle(false);
 	}
 	start(){
-		let T=this.dText.frame.time;
-		this.dText.textCanvasContainer.classList.add('moving');
-		for(let dT=this.dText,i=dT.DanmakuText.length,t;i--;){
-			if((t=dT.DanmakuText[i]).danmaku.mode<2)
-				this._move(t,T);
-		}
+		this._toggle(true);
 	}
-	_move(t,T=this.dText.frame.time){
-		requestAnimationFrame(()=>{
-			if(!t.danmaku)return;
-			let X=this.dText._calcSideDanmakuPosition(t,T+500000,this.dText.width);
-			t._cache.style.transform=`translate3d(${(((X-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
-		});
+	_move(t,T){
+		if(!t.danmaku)return;
+		if(T===undefined)T=this.dText.frame.time+500000;
+		t._cache.style.transform=`translate3d(${(((this.dText._calcSideDanmakuPosition(t,T,this.dText.width)-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
 	}
 	resetPos(){
 		this.pause();
-		if(!this.dText.paused)setImmediate(()=>{
-			this.start();	
-		});
+		this.dText.paused||setImmediate(()=>this.start());
 	}
 	resize(){
 		this.resetPos();
 	}
 	remove(t){
-		this.dText.textCanvasContainer.removeChild(t._cache);
+		this.container.removeChild(t._cache);
 	}
 	enable(){
-		this.dText.textCanvasContainer.hidden=false;
+		this.container.hidden=false;
 	}
 	disable(){
-		this.dText.textCanvasContainer.hidden=true;
+		this.container.hidden=true;
 	}
 	newDanmaku(t){
-		t._cache.style.transform=`translate3d(${(((t.style.x-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
-		this.dText.textCanvasContainer.appendChild(t._cache);
-		if(t.danmaku.mode<2)
-			this._move(t);
+		t._cache.style.transform=`translate3d(${t.style.x-t.estimatePadding}px,${t.style.y-t.estimatePadding}px,0)`;
+		this.container.appendChild(t._cache);
+		if(t.danmaku.mode<2)requestAnimationFrame(a=>this._move(t));
 	}
 }
 
