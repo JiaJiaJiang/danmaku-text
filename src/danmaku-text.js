@@ -132,6 +132,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		start(){
 			this.paused=false;
+			this.reCheckIndexMark();
 			this.activeRenderMode.start();
 		}
 		pause(){
@@ -321,6 +322,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		enable(){//enable the plugin
 			this.textCanvasContainer.hidden=false;
+			if(this.frame.working)this.start();
 		}
 		disable(){//disable the plugin
 			this.textCanvasContainer.hidden=true;
