@@ -9,9 +9,9 @@ class TextCanvas extends Template{
 		super(dText);
 		this.supported=dText.text2d.supported;
 		if(!this.supported)return;
-		dText.frame.styleSheet.insertRule(`#${dText.randomText}_textCanvasContainer canvas{will-change:transform;top:0;left:0;position:absolute;}`,0);
-		dText.frame.styleSheet.insertRule(`#${dText.randomText}_textCanvasContainer.moving canvas{transition:transform 500s linear;}`,0);
-		dText.frame.styleSheet.insertRule(`#${dText.randomText}_textCanvasContainer{will-change:transform;pointer-events:none;overflow:hidden;}`,0);
+		dText.frame.addStyle([`#${dText.randomText}_textCanvasContainer canvas{will-change:transform;top:0;left:0;position:absolute;}`,
+								`#${dText.randomText}_textCanvasContainer.moving canvas{transition:transform 500s linear;}`,
+								`#${dText.randomText}_textCanvasContainer{will-change:transform;pointer-events:none;overflow:hidden;}`]);
 
 		this.container=dText.textCanvasContainer=document.createElement('div');//for text canvas
 		this.container.classList.add(`${dText.randomText}_fullfill`);
