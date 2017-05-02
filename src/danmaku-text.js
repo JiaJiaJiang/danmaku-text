@@ -96,13 +96,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}
 			addEvents(document,{
 				visibilitychange:e=>{
-					if(document.hidden){
-						this.pause();
-					}else{
-						this.reCheckIndexMark();
-						if(this.frame.working)this.start();
-						else{this.draw(true);}
-					}
+					this.danmakuCheckSwitch=!document.hidden;
+					if(!document.hidden)this.reCheckIndexMark();
 				}
 			});
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
@@ -167,11 +162,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			return true;
 		}
 		_checkNewDanmaku(){
-			let d,time=this.frame.time,hidden=document.hidden;
-			if(this.danmakuCheckTime===time)return;
+			let d,time=this.frame.time;
+			if(this.danmakuCheckTime===time || !this.danmakuCheckSwitch)return;
 			if(this.list.length)
 			for(;(this.indexMark<this.list.length)&&(d=this.list[this.indexMark])&&(d.time<=time);this.indexMark++){//add new danmaku
-				if(this.options.screenLimit>0 && this.DanmakuText.length>=this.options.screenLimit ||hidden){continue;}//continue if the number of danmaku on screen has up to limit or doc is not visible
+				if(this.options.screenLimit>0 && this.DanmakuText.length>=this.options.screenLimit){continue;}//continue if the number of danmaku on screen has up to limit or doc is not visible
 				this._addNewDanmaku(d);
 			}
 			this.danmakuCheckTime=time;

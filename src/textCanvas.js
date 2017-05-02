@@ -17,11 +17,6 @@ class TextCanvas extends Template{
 		this.container.classList.add(`${dText.randomText}_fullfill`);
 		this.container.id=`${dText.randomText}_textCanvasContainer`;
 		dText.container.appendChild(this.container);
-		document.addEventListener('visibilitychange',e=>{
-			if(dText.renderMode===1 &&!document.hidden){
-				this.resetPos();
-			}
-		});
 	}
 	_toggle(s){
 		let D=this.dText,T=D.frame.time;
