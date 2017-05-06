@@ -48,7 +48,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				fontWeight: 300,
 				fontVariant: null,
 				color: "#fff",
-				lineHeight: null,//when this style is was not a number,the number will be the same as fontSize
 				fontSize: 24,
 				fontFamily: "Arial",
 				strokeWidth: 1,//outline width
@@ -80,7 +79,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				2:this.text2d,
 				3:this.text3d,
 			};
-			this.GraphCache=[];//COL text graph cache
+			this.GraphCache=[];//text graph cache
 			this.DanmakuText=[];
 
 			//opt time record
@@ -98,7 +97,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			addEvents(document,{
 				visibilitychange:e=>{
 					this.danmakuCheckSwitch=!document.hidden;
-					if(!document.hidden)this.reCheckIndexMark();
+					if(!document.hidden)this.recheckIndexMark();
 				}
 			});
 			this._checkNewDanmaku=this._checkNewDanmaku.bind(this);
@@ -128,7 +127,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		start(){
 			this.paused=false;
-			this.reCheckIndexMark();
+			this.recheckIndexMark();
 			this.activeRenderMode.start();
 		}
 		pause(){
@@ -290,11 +289,11 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.tunnel.reset();
 			this._clearCanvas(true);
 		}
-		reCheckIndexMark(t=this.frame.time){
+		recheckIndexMark(t=this.frame.time){
 			this.indexMark=dichotomy(this.list,t,0,this.list.length-1,true);
 		}
 		time(t=this.frame.time){//reset time,you should invoke it when the media has seeked to another time
-			this.reCheckIndexMark(t);
+			this.recheckIndexMark(t);
 			if(this.options.clearWhenTimeReset){this.clear();}
 			else{this.resetTimeOfDanmakuOnScreen();}
 		}
