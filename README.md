@@ -8,6 +8,26 @@
 2. canvas 2d : 不如上面流畅，但能较轻松应对大量弹幕
 3. webgl(不建议使用，尚有性能问题)
 
+## 弹幕对象格式
+
+本模块接受以下格式的弹幕对象
+```javascript
+{
+	_:'text',
+	time:(number)毫秒时间,
+	text:(string)弹幕内容,
+	style:(object)用于覆盖defaultStyle设置中的设置,
+	mode:(number)弹幕模式
+}
+```
+
+弹幕模式(mode)
+
+0. 右到左
+1. 左到右
+2. 底部
+3. 顶部
+
 ## 加载模块
 
 ```javascript
@@ -51,6 +71,9 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 * x,y : (number)相对于弹幕框架左上角的坐标
 
 返回一个`Array`，元素为通过弹幕框架的`load`方法载入的弹幕对象。
+
+### .container
+(HTMLElement)容纳文本弹幕的元素
 
 ### .list
 (array)按时间顺序存放着载入的弹幕对象
