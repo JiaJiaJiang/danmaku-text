@@ -30,7 +30,7 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 * mode : (number)模式，序号见顶部说明
 
 ### .removeText(textObject)
-移除一个屏幕上的弹幕
+移除一个屏幕上的弹幕对象
 
 * textObject : (TextGraph对象)要移除的弹幕对象
 
@@ -55,9 +55,6 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 ### .list
 (array)按时间顺序存放着载入的弹幕对象
 
-### .tunnel
-(tunnelManager类实例)管理弹幕轨道的对象
-
 ### .defaultStyle
 (object)设置默认的弹幕样式
 
@@ -80,9 +77,6 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 ### .renderMode
 (number)目前的渲染模式序号
 
-### .activeRenderMode
-(textModule类)当前正在使用的渲染模式对象
-
 ### .DanmakuText
 (array)当前显示在屏幕上的弹幕对象
 
@@ -94,3 +88,7 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 * clearWhenTimeReset:true //改变时间的时候清空屏幕上的弹幕
 * speed:6.5 //速度
 
+## 使用的库
+
+* [Mat.js](https://coding.net/u/luojia/p/Mat.js/git) : 矩阵库
+* [setImmediate](https://github.com/YuzuJS/setImmediate) : setImmediate支持
