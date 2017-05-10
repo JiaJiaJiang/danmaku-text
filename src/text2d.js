@@ -69,6 +69,7 @@ class Text2d extends Template{
 		C.height=D.height;
 	}
 	enable(){
+		this.draw();
 		this.dText.useImageBitmap=!(this.dText.canvas.hidden=false);
 	}
 	disable(){

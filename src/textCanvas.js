@@ -49,15 +49,19 @@ class TextCanvas extends Template{
 		this.container.removeChild(t._cache);
 	}
 	enable(){
+		this.dText.DanmakuText.forEach(t=>{
+			this.newDanmaku(t);
+		});
 		this.container.hidden=false;
 	}
 	disable(){
 		this.container.hidden=true;
+		this.container.innerHTML='';
 	}
 	newDanmaku(t){
 		t._cache.style.transform=`translate3d(${t.style.x-t.estimatePadding}px,${t.style.y-t.estimatePadding}px,0)`;
 		this.container.appendChild(t._cache);
-		if(t.danmaku.mode<2)requestAnimationFrame(a=>this._move(t));
+		if(t.danmaku.mode<2&&!this.dText.paused)requestAnimationFrame(()=>this._move(t));
 	}
 }
 

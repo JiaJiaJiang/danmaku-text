@@ -107,19 +107,18 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		}
 		setRenderMode(n){
 			if(this.renderMode===n || !(n in this.modes) || !this.modes[n].supported)return;
-			this.clear();
 			this.activeRenderMode&&this.activeRenderMode.disable();
-			this.modes[n].enable();
 			defProp(this,'activeRenderMode',{value:this.modes[n]});
 			defProp(this,'renderMode',{value:n});
 			this.activeRenderMode.resize();
+			this.activeRenderMode.enable();
 		}
 		media(media){
 			addEvents(media,{
 				seeked:()=>{
 					this.start();
 					this.time();
-					this._clearCanvas();
+					this._clearScreen();
 				},
 				seeking:()=>this.pause(),
 				stalled:()=>this.pause(),
@@ -284,7 +283,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(this.activeRenderMode)this.activeRenderMode.resize();
 			this.draw(true);
 		}
-		_clearCanvas(forceFull){
+		_clearScreen(forceFull){
 			this.activeRenderMode&&this.activeRenderMode.clear(forceFull);
 		}
 		clear(){//clear danmaku on the screen
@@ -293,7 +292,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				if(T.danmaku)this.removeText(T);
 			}
 			this.tunnel.reset();
-			this._clearCanvas(true);
+			this._clearScreen(true);
 		}
 		recheckIndexMark(t=this.frame.time){
 			this.indexMark=dichotomy(this.list,t,0,this.list.length-1,true);

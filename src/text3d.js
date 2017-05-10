@@ -69,7 +69,6 @@ class Text3d extends Template{
 		gl.clearColor(0, 0, 0, 0.0);
 		gl.enable(gl.BLEND);
 		gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA ,gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
 		this.maxTexSize=gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -126,13 +125,17 @@ class Text3d extends Template{
 		gl.uniformMatrix4fv(this.u2dCoord,false,Mat.Identity(4).translate3d(-1,1,0).scale3d(2/C.width,-2/C.height,0));
 	}
 	enable(){
+		this.dText.DanmakuText.forEach(t=>{
+			this.newDanmaku(t,false);
+		});
 		this.dText.useImageBitmap=this.dText.canvas3d.hidden=false;
+		requestAnimationFrame(()=>this.draw());
 	}
 	disable(){
 		this.dText._cleanCache(true);
 		this.dText.canvas3d.hidden=true;
 	}
-	newDanmaku(t){
+	newDanmaku(t,async=true){
 		const gl=this.gl;
 		t.glDanmaku=false;
 		if(t._cache.height>this.maxTexSize || t._cache.width>this.maxTexSize){//ignore too large danmaku image
@@ -147,12 +150,17 @@ class Text3d extends Template{
 			gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
 			gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 		}
-		
-		requestIdleCallback(()=>{
+		if(async){
+			requestIdleCallback(()=>{
+				gl.bindTexture(gl.TEXTURE_2D,tex);
+				gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,t._cache);
+				t.glDanmaku=true;
+			});
+		}else{
 			gl.bindTexture(gl.TEXTURE_2D,tex);
 			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,t._cache);
 			t.glDanmaku=true;
-		});
+		}
 
 		//vert
 		t.verticesBuffer||(t.verticesBuffer=gl.createBuffer());
