@@ -10,18 +10,18 @@ class Text3d extends Template{
 	constructor(dText){
 		super(dText);
 		this.supported=false;
-		dText.canvas3d=document.createElement('canvas');//the canvas
-		dText.canvas3d.classList.add(`${dText.randomText}_fullfill`);
-		dText.canvas3d.id=`${dText.randomText}_text3d`;
-		dText.context3d=dText.canvas3d.getContext('webgl');//the canvas3d context
-		if(!dText.context3d)dText.context3d=dText.canvas3d.getContext('expeimental-webgl');
+		let c3d=this.c3d=dText.canvas3d;
+		c3d=document.createElement('canvas');//the canvas
+		c3d.classList.add(`${dText.randomText}_fullfill`);
+		c3d.id=`${dText.randomText}_text3d`;
+		dText.context3d=c3d.getContext('webgl')||c3d.getContext('experimental-webgl');//the canvas3d context
 
 		if(!dText.context3d){
 			console.warn('text 3d not supported');
 			return;
 		}
-		dText.container.appendChild(dText.canvas3d);
-		const gl=this.gl=dText.context3d,canvas=dText.canvas3d;
+		dText.container.appendChild(c3d);
+		const gl=this.gl=dText.context3d,canvas=c3d;
 		//init webgl
 
 		//shader
@@ -117,7 +117,7 @@ class Text3d extends Template{
 		if(t.textureCoordBuffer)gl.deleteBuffer(t.textureCoordBuffer);
 	}
 	resize(w,h){
-		const gl=this.gl,C=this.dText.canvas3d;
+		const gl=this.gl,C=this.c3d;
 		C.width=this.dText.width;
 		C.height=this.dText.height;
 		gl.viewport(0,0,C.width,C.height);
@@ -128,12 +128,12 @@ class Text3d extends Template{
 		this.dText.DanmakuText.forEach(t=>{
 			this.newDanmaku(t,false);
 		});
-		this.dText.useImageBitmap=this.dText.canvas3d.hidden=false;
+		this.dText.useImageBitmap=this.c3d.hidden=false;
 		requestAnimationFrame(()=>this.draw());
 	}
 	disable(){
 		this.dText._cleanCache(true);
-		this.dText.canvas3d.hidden=true;
+		this.c3d.hidden=true;
 	}
 	newDanmaku(t,async=true){
 		const gl=this.gl;

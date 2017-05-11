@@ -106,12 +106,13 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.setRenderMode(1);
 		}
 		setRenderMode(n){
-			if(this.renderMode===n || !(n in this.modes) || !this.modes[n].supported)return;
+			if(this.renderMode===n || !(n in this.modes) || !this.modes[n].supported)return false;
 			this.activeRenderMode&&this.activeRenderMode.disable();
 			defProp(this,'activeRenderMode',{value:this.modes[n]});
 			defProp(this,'renderMode',{value:n});
 			this.activeRenderMode.resize();
 			this.activeRenderMode.enable();
+			return true;
 		}
 		media(media){
 			addEvents(media,{
