@@ -59,7 +59,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				shadowOffsetY:0,
 				fill:true,//if the text should be filled
 			};
-			this.defaultStyle.__defineGetter__('lineHeight',function(){return this.fontSize+2;});
+			Object.defineProperty(this.defaultStyle,'lineHeight',{
+				get:()=>this.fontSize+2
+			});
 			frame.addStyle(`.${this.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`);
 
 			defProp(this,'renderMode',{configurable:true});
