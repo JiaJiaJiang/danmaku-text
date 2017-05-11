@@ -130,7 +130,7 @@ class Text3d extends Template{
 		requestAnimationFrame(()=>this.draw());
 	}
 	disable(){
-		this.dText._cleanCache(true);
+		this.clear();
 		this.c3d.hidden=true;
 	}
 	newDanmaku(t,async=true){

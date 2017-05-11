@@ -74,6 +74,7 @@ class Text2d extends Template{
 	}
 	disable(){
 		this.dText.canvas.hidden=true;
+		this.clear(true);
 	}
 }
 
