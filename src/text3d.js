@@ -120,7 +120,6 @@ class Text3d extends Template{
 		C.width=this.dText.width;
 		C.height=this.dText.height;
 		gl.viewport(0,0,C.width,C.height);
-		//to 2d canvas
 		gl.uniformMatrix4fv(this.u2dCoord,false,Mat.Identity(4).translate3d(-1,1,0).scale3d(2/C.width,-2/C.height,0));
 	}
 	enable(){
