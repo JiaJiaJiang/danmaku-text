@@ -8,6 +8,7 @@ class textModuleTemplate{
 		this.dText=dText;
 	}
 	draw(){}
+	rate(){}
 	pause(){}
 	start(){}
 	clear(){}

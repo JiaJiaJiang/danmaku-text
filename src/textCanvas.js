@@ -33,10 +33,13 @@ class TextCanvas extends Template{
 	start(){
 		this._toggle(true);
 	}
+	rate(r){
+		this.resetPos();
+	}
 	_move(t,T){
 		if(!t.danmaku)return;
 		if(T===undefined)T=this.dText.frame.time+500000;
-		t._cache.style.transform=`translate3d(${(((this.dText._calcSideDanmakuPosition(t,T,this.dText.width)-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
+		t._cache.style.transform=`translate3d(${(((this.dText._calcSideDanmakuPosition(t,T)-t.estimatePadding)*10)|0)/10}px,${t.style.y-t.estimatePadding}px,0)`;
 	}
 	resetPos(){
 		this.pause();
