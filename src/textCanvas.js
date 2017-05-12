@@ -46,7 +46,7 @@ class TextCanvas extends Template{
 		this.resetPos();
 	}
 	remove(t){
-		this.container.removeChild(t._cache);
+		t._cache.parentNode&&this.container.removeChild(t._cache);
 	}
 	enable(){
 		this.dText.DanmakuText.forEach(t=>{
