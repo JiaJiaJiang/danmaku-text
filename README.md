@@ -44,7 +44,7 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 
 # class TextDanmaku
 
-### .setRenderMode(mode)
+### .setRendererMode(mode)
 设置弹幕渲染模式
 
 * mode : (number)模式，序号见顶部说明
@@ -97,7 +97,7 @@ danmakuFrame.modules.TextDanmaku //TextDanmaku对象
 * shadowOffsetY:0 //阴影y偏移
 * fill:true //填充文字
 
-### .renderMode
+### .rendererMode
 (number)目前的渲染模式序号
 
 ### .DanmakuText
