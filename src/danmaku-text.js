@@ -88,7 +88,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			D.cacheCleanTime=0;
 			D.danmakuMoveTime=0;
 			D.danmakuCheckTime=0;
-			//D.rendererModeAutoShiftTime=0;
 
 			D.danmakuCheckSwitch=true;
 			D.options={
@@ -511,7 +510,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.dText=dText;
 			this.totalArea=0;
 			this.limitArea=Infinity;
-			this.timer=setInterval(()=>this.rendererModeCheck(),1000);
+			this.timer=setInterval(()=>this.rendererModeCheck(),1500);
 		}
 		add(t){
 			this.dText.DanmakuText.push(t);
@@ -527,7 +526,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 		rendererModeCheck(){
 			let D=this.dText;
 			if(!this.dText.options.autoShiftRenderingMode || D.paused)return;
-			if(D.frame.fpsRec<(D.frame.fps||60)*0.965){
+			if(D.frame.fpsRec<(D.frame.fps||60)*0.95){
 				(this.limitArea>this.totalArea)&&(this.limitArea=this.totalArea);
 			}else{
 				(this.limitArea<this.totalArea)&&(this.limitArea=this.totalArea);
@@ -537,7 +536,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			}else if(D.rendererMode==2&& this.totalArea<this.limitArea*0.5){
 				D.textCanvas.supported&&D.setRendererMode(1);
 			}
-			//D.rendererModeAutoShiftTime=Date.now();
 		}
 	}
 
