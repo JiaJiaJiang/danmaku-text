@@ -23,7 +23,7 @@ class TextCanvas extends Template{
 		this.container.classList[s?'add':'remove']('moving');
 		for(let i=D.DanmakuText.length,t;i--;){
 			if((t=D.DanmakuText[i]).danmaku.mode>=2)continue;
-			if(s){requestAnimationFrame(a=>this._move(t,T+500000));}
+			if(s){requestAnimationFrame(()=>this._move(t));}
 			else{this._move(t,T);}
 		}
 	}
@@ -33,7 +33,7 @@ class TextCanvas extends Template{
 	start(){
 		this._toggle(true);
 	}
-	rate(r){
+	rate(){
 		this.resetPos();
 	}
 	_move(t,T){
@@ -43,7 +43,7 @@ class TextCanvas extends Template{
 	}
 	resetPos(){
 		this.pause();
-		this.dText.paused||setImmediate(()=>this.start());
+		this.dText.paused||requestAnimationFrame(()=>this.start());
 	}
 	resize(){
 		this.resetPos();
@@ -52,9 +52,7 @@ class TextCanvas extends Template{
 		t._cache.parentNode&&this.container.removeChild(t._cache);
 	}
 	enable(){
-		this.dText.DanmakuText.forEach(t=>{
-			this.newDanmaku(t);
-		});
+		this.dText.DanmakuText.forEach(t=>this.newDanmaku(t));
 		this.container.hidden=false;
 	}
 	disable(){
@@ -62,9 +60,9 @@ class TextCanvas extends Template{
 		this.container.innerHTML='';
 	}
 	newDanmaku(t){
-		t._cache.style.transform=`translate3d(${t.style.x-t.estimatePadding}px,${t.style.y-t.estimatePadding}px,0)`;
+		t._cache.style.transform=`translate3d(${this.dText._calcSideDanmakuPosition(t)-t.estimatePadding}px,${t.style.y-t.estimatePadding}px,0)`;
 		this.container.appendChild(t._cache);
-		if(t.danmaku.mode<2&&!this.dText.paused)requestAnimationFrame(()=>this._move(t));
+		t.danmaku.mode<2&&!this.dText.paused&&requestAnimationFrame(()=>this._move(t));
 	}
 }
 

@@ -26,6 +26,7 @@ class Text3d extends Template{
 		//shader
 		var shaders={
 			danmakuFrag:[gl.FRAGMENT_SHADER,`
+				#pragma optimize(on)
 				varying lowp vec2 vDanmakuTexCoord;
 				uniform sampler2D uSampler;
 				void main(void) {
@@ -33,13 +34,13 @@ class Text3d extends Template{
 				}`
 			],
 			danmakuVert:[gl.VERTEX_SHADER,`
+				#pragma optimize(on)
 				attribute vec2 aVertexPosition;
 				attribute vec2 aDanmakuTexCoord;
 				uniform mat4 u2dCoordinate;
-				uniform vec2 uDanmakuPos;
 				varying lowp vec2 vDanmakuTexCoord;
 				void main(void) {
-					gl_Position = u2dCoordinate * vec4(aVertexPosition+uDanmakuPos,0,1);
+					gl_Position = u2dCoordinate * vec4(aVertexPosition,0,1);
 					vDanmakuTexCoord = aDanmakuTexCoord;
 				}`
 			],
@@ -73,7 +74,6 @@ class Text3d extends Template{
 
 		this.uSampler=gl.getUniformLocation(shaderProgram,"uSampler");
 		this.u2dCoord=gl.getUniformLocation(shaderProgram,"u2dCoordinate");
-		this.uDanmakuPos=gl.getUniformLocation(shaderProgram,"uDanmakuPos");
 		this.aVertexPosition=gl.getAttribLocation(shaderProgram,"aVertexPosition");
 		this.atextureCoord=gl.getAttribLocation(shaderProgram,"aDanmakuTexCoord");
 
@@ -81,9 +81,7 @@ class Text3d extends Template{
 		gl.enableVertexAttribArray(this.atextureCoord);
 
 		this.commonTexCoordBuffer=gl.createBuffer();
-		gl.bindBuffer(gl.ARRAY_BUFFER,this.commonTexCoordBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER,commonTextureCoord,gl.STATIC_DRAW);
-		gl.vertexAttribPointer(this.atextureCoord,2,gl.FLOAT,false,0,0);
+		this.commonVertCoordBuffer=gl.createBuffer();
 
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(this.uSampler,0);
@@ -92,13 +90,28 @@ class Text3d extends Template{
 	}
 	draw(force){
 		const gl=this.gl,l=this.dText.DanmakuText.length;
+		let cW=this.c3d.width,left,right,vW;
 		for(let i=0,t;i<l;i++){
 			t=this.dText.DanmakuText[i];
 			if(!t || !t.glDanmaku)continue;
-			gl.uniform2f(this.uDanmakuPos,t.style.x-t.estimatePadding,t.style.y-t.estimatePadding);
+			left=t.style.x-t.estimatePadding;
+			right=left+t._cache.width,
+			vW=t._cache.width+(left<0?left:0)-(right>cW?right-cW:0);
+			if(left>cW || right<0)continue;
 
-			gl.bindBuffer(gl.ARRAY_BUFFER,t.verticesBuffer);
+			//vert
+			t.vertCoord[0]=t.vertCoord[4]=(left<0)?0:left;
+			t.vertCoord[2]=t.vertCoord[6]=t.vertCoord[0]+vW;
+			gl.bindBuffer(gl.ARRAY_BUFFER,this.commonVertCoordBuffer);
+			gl.bufferData(gl.ARRAY_BUFFER,t.vertCoord,gl.DYNAMIC_DRAW);
 			gl.vertexAttribPointer(this.aVertexPosition,2,gl.FLOAT,false,0,0);
+
+			//tex
+			commonTextureCoord[0]=commonTextureCoord[4]=(left<0)?-left/t._cache.width:0;
+			commonTextureCoord[2]=commonTextureCoord[6]=commonTextureCoord[0]+vW/t._cache.width;
+			gl.bindBuffer(gl.ARRAY_BUFFER,this.commonTexCoordBuffer);
+			gl.bufferData(gl.ARRAY_BUFFER,commonTextureCoord,gl.DYNAMIC_DRAW);
+			gl.vertexAttribPointer(this.atextureCoord,2,gl.FLOAT,false,0,0);
 
 			gl.bindTexture(gl.TEXTURE_2D,t.texture);
 
@@ -120,7 +133,7 @@ class Text3d extends Template{
 		C.width=this.dText.width;
 		C.height=this.dText.height;
 		gl.viewport(0,0,C.width,C.height);
-		gl.uniformMatrix4fv(this.u2dCoord,false,(new Mat.Identity(4).translate3d(-1,1,0).scale3d(2/C.width,-2/C.height,0)).array);
+		gl.uniformMatrix4fv(this.u2dCoord,false,(Mat.Identity(4).translate3d(-1,1,0).scale3d(2/C.width,-2/C.height,0)).array);
 	}
 	enable(){
 		this.dText.DanmakuText.forEach(t=>{
@@ -162,23 +175,23 @@ class Text3d extends Template{
 
 		//vert
 		t.verticesBuffer||(t.verticesBuffer=gl.createBuffer());
-		gl.bindBuffer(gl.ARRAY_BUFFER,t.verticesBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([
-			0,0,
-			t._cache.width,0,
-			0,t._cache.height,
-			t._cache.width,t._cache.height,
-		]), gl.STATIC_DRAW);
+		let y=t.style.y-t.estimatePadding;
+		t.vertCoord=new Float32Array([
+			0,y,
+			0,y,
+			0,y+t._cache.height,
+			0,y+t._cache.height,
+		]);
 	}
 }
 
 
 
 const commonTextureCoord=new Float32Array([
-	0.0,  0.0,
-	1.0,  0.0,
-	0.0,  1.0,
-	1.0,  1.0,
+	0.0,  0.0,//↖
+	1.0,  0.0,//↗
+	0.0,  1.0,//↙
+	1.0,  1.0,//↘
 ]);
 
 

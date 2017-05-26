@@ -42,7 +42,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			D.list=[];//danmaku object array
 			D.indexMark=0;//to record the index of last danmaku in the list
 			D.tunnel=new tunnelManager();
-			D.renderingDanmakuManager=new renderingDanmakuManager(D);
 			D.paused=true;
 			D.randomText=`danmaku_text_${(Math.random()*999999)|0}`;
 			D.defaultStyle={//these styles can be overwrote by the 'font' property of danmaku object
@@ -83,6 +82,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			};
 			D.GraphCache=[];//text graph cache
 			D.DanmakuText=[];
+			D.renderingDanmakuManager=new renderingDanmakuManager(D);
+
 
 			//opt time record
 			D.cacheCleanTime=0;
@@ -217,7 +218,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			D.renderingDanmakuManager.add(t);
 			D.activeRendererMode.newDanmaku(t);
 		}
-		_calcSideDanmakuPosition(t,T){
+		_calcSideDanmakuPosition(t,T=this.frame.time){
 			let R=!t.danmaku.mode,style=t.style;
 			return (R?this.frame.width:(-style.width))
 					+(R?-1:1)*this.frame.rate*(style.width+1024)*(T-t.time)*this.options.speed/60000;
@@ -271,7 +272,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if((!force&&this.paused)||!this.enabled)return;
 			this._calcDanmakusPosition(force);
 			this.activeRendererMode.draw(force);
-			requestIdleCallback(this._checkNewDanmaku);
+			requestAnimationFrame(this._checkNewDanmaku);
 		}
 		removeText(t){//remove the danmaku from screen
 			this.renderingDanmakuManager.remove(t);
@@ -510,7 +511,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.dText=dText;
 			this.totalArea=0;
 			this.limitArea=Infinity;
-			this.timer=setInterval(()=>this.rendererModeCheck(),1500);
+			if(dText.text2d.supported)this.timer=setInterval(()=>this.rendererModeCheck(),1500);
 		}
 		add(t){
 			this.dText.DanmakuText.push(t);
