@@ -28,19 +28,24 @@ class Text2d extends Template{
 			left,
 			right,
 			vW;
+		const bitmap=this.dText.useImageBitmap;
 		ctx.globalCompositeOperation='destination-over';
 		this.clear(force);
 		for(;i--;){
 			(t=dT[i]).drawn||(t.drawn=true);
 			left=t.style.x-t.estimatePadding;
-			right=left+t._cache.width,
-			vW=t._cache.width+(left<0?left:0)-(right>cW?right-cW:0);
+			right=left+t._cache.width;
 			if(left>cW || right<0)continue;
-			ctx.drawImage(t._bitmap||t._cache,
-				(left<0)?-left:0,0,
-						vW,t._cache.height,
-				(left<0)?0:left,t.style.y-t.estimatePadding,
-						vW,t._cache.height);
+			if(!bitmap && cW>=t._cache.width){//danmaku that smaller than canvas width
+				ctx.drawImage(t._bitmap||t._cache, left, t.style.y-t.estimatePadding);
+			}else{
+				vW=t._cache.width+(left<0?left:0)-(right>cW?right-cW:0)
+				ctx.drawImage(t._bitmap||t._cache,
+					(left<0)?-left:0,0,
+							vW,t._cache.height,
+					(left<0)?0:left,t.style.y-t.estimatePadding,
+							vW,t._cache.height);
+			}
 		}
 	}
 	clear(force){

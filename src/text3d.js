@@ -27,10 +27,13 @@ class Text3d extends Template{
 		var shaders={
 			danmakuFrag:[gl.FRAGMENT_SHADER,`
 				#pragma optimize(on)
+				precision lowp float;
 				varying lowp vec2 vDanmakuTexCoord;
 				uniform sampler2D uSampler;
 				void main(void) {
-					gl_FragColor = texture2D(uSampler,vDanmakuTexCoord);
+					vec4 co=texture2D(uSampler,vDanmakuTexCoord);
+					if(co.a == 0.0)discard;
+					gl_FragColor = co;
 				}`
 			],
 			danmakuVert:[gl.VERTEX_SHADER,`
@@ -125,8 +128,6 @@ class Text3d extends Template{
 	deleteTextObject(t){
 		const gl=this.gl;
 		if(t.texture)gl.deleteTexture(t.texture);
-		if(t.verticesBuffer)gl.deleteBuffer(t.verticesBuffer);
-		if(t.textureCoordBuffer)gl.deleteBuffer(t.textureCoordBuffer);
 	}
 	resize(w,h){
 		const gl=this.gl,C=this.c3d;
@@ -168,13 +169,11 @@ class Text3d extends Template{
 				t.glDanmaku=true;
 			});
 		}else{
-			gl.bindTexture(gl.TEXTURE_2D,tex);
 			gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,t._cache);
 			t.glDanmaku=true;
 		}
 
 		//vert
-		t.verticesBuffer||(t.verticesBuffer=gl.createBuffer());
 		let y=t.style.y-t.estimatePadding;
 		t.vertCoord=new Float32Array([
 			0,y,
