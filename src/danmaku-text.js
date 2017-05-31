@@ -126,11 +126,9 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			addEvents(media,{
 				seeked:()=>{
 					D.time();
-					D.paused&&D.start();
 					D._clearScreen(true);
 				},
 				seeking:()=>D.pause(),
-				stalled:()=>D.pause(),
 			});
 		}
 		start(){
@@ -171,7 +169,8 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if(i<D.indexMark)D.indexMark--;
 			return true;
 		}
-		_checkNewDanmaku(){
+		_checkNewDanmaku(force){
+			if(this.paused&&!force)return;
 			let D=this,d,time=D.frame.time;
 			if(D.danmakuCheckTime===time || !D.danmakuCheckSwitch)return;
 			if(D.list.length)
@@ -273,7 +272,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			if((!force&&this.paused)||!this.enabled)return;
 			this._calcDanmakusPosition(force);
 			this.activeRendererMode.draw(force);
-			requestAnimationFrame(this._checkNewDanmaku);
+			requestAnimationFrame(()=>{this._checkNewDanmaku(force)});
 		}
 		removeText(t){//remove the danmaku from screen
 			this.renderingDanmakuManager.remove(t);
