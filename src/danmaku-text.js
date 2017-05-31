@@ -142,7 +142,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			this.paused=true;
 			this.activeRendererMode.pause();
 		}
-		load(d){
+		load(d,addToScreen){
 			if(!d || d._!=='text'){return false;}
 			if(typeof d.text !== 'string'){
 				console.error('wrong danmaku object:',d);
@@ -157,6 +157,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			d.style.fontSize=d.style.fontSize?((d.style.fontSize+0.5)|0):this.defaultStyle.fontSize;
 			if(isNaN(d.style.fontSize)|| d.style.fontSize===Infinity || d.style.fontSize===0)d.style.fontSize=this.defaultStyle.fontSize;
 			if(typeof d.mode !== 'number')d.mode=0;
+			if(addToScreen)this._addNewDanmaku(d);
 			return d;
 		}
 		loadList(danmakuArray){

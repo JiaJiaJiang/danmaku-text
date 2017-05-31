@@ -52,7 +52,9 @@ class TextCanvas extends Template{
 		t._cache.parentNode&&this.container.removeChild(t._cache);
 	}
 	enable(){
-		this.dText.DanmakuText.forEach(t=>this.newDanmaku(t));
+		requestAnimationFrame(()=>{
+			this.dText.DanmakuText.forEach(t=>this.newDanmaku(t));
+		});
 		this.container.hidden=false;
 	}
 	disable(){
