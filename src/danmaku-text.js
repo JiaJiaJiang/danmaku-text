@@ -36,7 +36,7 @@ function init(DanmakuFrame,DanmakuFrameModule){
 	let useImageBitmap=false;
 
 	class TextDanmaku extends DanmakuFrameModule{
-		constructor(frame){
+		constructor(frame,arg={}){
 			super(frame);
 			const D=this;
 			D.list=[];//danmaku object array
@@ -44,6 +44,12 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			D.tunnel=new tunnelManager();
 			D.paused=true;
 			D.randomText=`danmaku_text_${(Math.random()*999999)|0}`;
+			
+			//opt time record
+			D.cacheCleanTime=0;
+			D.danmakuMoveTime=0;
+			D.danmakuCheckTime=0;
+			D.danmakuCheckSwitch=true;
 			D.defaultStyle={//these styles can be overwrote by the 'font' property of danmaku object
 				fontStyle: null,
 				fontWeight: 300,
@@ -60,6 +66,18 @@ function init(DanmakuFrame,DanmakuFrameModule){
 				shadowOffsetY:0,
 				fill:true,//if the text should be filled
 			};
+			D.options={
+				allowLines:false,//allow multi-line danmaku
+				screenLimit:0,//the most number of danmaku on the screen
+				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
+				speed:6.5,
+				autoShiftRenderingMode:true,//auto shift to a low load mode
+			}
+
+			if(arg.defaultStyle)
+				Object.assign(this.defaultStyle,arg.defaultStyle);
+			if(arg.options)
+				Object.assign(this.options,arg.options);
 			
 			frame.addStyle(`.${D.randomText}_fullfill{top:0;left:0;width:100%;height:100%;position:absolute;}`);
 
@@ -84,20 +102,6 @@ function init(DanmakuFrame,DanmakuFrameModule){
 			D.DanmakuText=[];
 			D.renderingDanmakuManager=new renderingDanmakuManager(D);
 
-
-			//opt time record
-			D.cacheCleanTime=0;
-			D.danmakuMoveTime=0;
-			D.danmakuCheckTime=0;
-
-			D.danmakuCheckSwitch=true;
-			D.options={
-				allowLines:false,//allow multi-line danmaku
-				screenLimit:0,//the most number of danmaku on the screen
-				clearWhenTimeReset:true,//clear danmaku on screen when the time is reset
-				speed:6.5,
-				autoShiftRenderingMode:true,//auto shift to a low load mode
-			}
 			addEvents(document,{
 				visibilitychange:e=>{
 					D.danmakuCheckSwitch=!document.hidden;
