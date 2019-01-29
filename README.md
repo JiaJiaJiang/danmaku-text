@@ -1,4 +1,6 @@
-#danmaku-text
+# danmaku-text
+
+![toDataURI-logo](https://jiajiajiang.github.io/staticRepo/danmaku-text/logo.png)
 
 作为 [danmaku-frame](https://coding.net/u/luojia/p/danmaku-frame) 模块使用的文本弹幕模块。
 
